@@ -1,0 +1,10 @@
+/code/__pycache__/*
+/code/saved_data*
+*/__pycache__/*
+code/analysis/figs*
+code/analysis/__pycache__/
+venv/
+code/db.sqlite3
+*.db
+.vscode/
+MARL-Exploration-Bonus/venv
