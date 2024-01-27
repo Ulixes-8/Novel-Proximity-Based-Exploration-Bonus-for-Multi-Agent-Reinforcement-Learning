@@ -9,6 +9,7 @@ from eb_marl_agent import EB_MARL_Comm
 from hyperparameters import multiple_graph_parameters
 from observer import Oracle
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 NUMBER_OF_TRIALS = evaluation_hyperparameters['num_of_trials']
@@ -32,7 +33,9 @@ def evaluation_twelve(choice):
     
     episodes_array = np.array([i+1 for i in range(NUM_OF_EPISODES)])
 
-
+    # print("The Oracle is created.")
+    # oracle = Oracle() # The Observer is trial persistent and will be used to track the universal n-table
+    
     best_joint_policy = {}
     best_mean = -1000
 
@@ -41,7 +44,7 @@ def evaluation_twelve(choice):
         agent_type, env, agents, train_choice = _set_up(choice)
         evaluation_pos = 0
         for episode_num in range(1, NUM_OF_EPISODES+1):
-            reward = train_choice(env, agents, episode_num-1)
+            reward = train_choice(env, agents, episode_num-1, oracle=None)
             reward_array_cumulative[episode_num-1] = reward
             if episode_num % 100 == 0:
                 print(trials_num, episode_num)
@@ -59,6 +62,27 @@ def evaluation_twelve(choice):
                 reward_list_evaluation[evaluation_pos] = cumulative_reward
                 evaluation_pos += 1
 
+
+            # mean_reward_episode = reward_array_cumulative[episode_num - 1] / NUM_OF_AGENTS
+            # oracle.calculate_and_store_stats(mean_reward_episode)
+            
+            
+        # stats = oracle.calculate_statistics()
+        # oracle.create_bubble_plot()
+        # oracle.plot_episode_statistics()
+        # oracle.plot_visit_count_distribution()
+        # print("Statistics: ", stats)
+        # # last_mean_reward = reward_array_cumulative[-1] / NUM_OF_AGENTS
+        # # bes = oracle.calculate_bad_exp_score(last_mean_reward)
+        # # print("Final Bad Exploration Score:", bes)
+        # # cc, G = oracle.calculate_clustering_coefficient()
+        # # print("Clustering Coefficient:", cc)
+        # # Assuming oracle.universal_nTable is your universal nTable
+        # total_actions = oracle.sum_universal_nTable()
+        # print("Total sum of the universal_nTable:", total_actions)
+        # sum_top_four_states = oracle.sum_top_four_states()        
+        # print("Sum of the top four states:", sum_top_four_states)
+        
         # After each trial we get a mean reward for the set of agents
         cumulative_reward = 0
         for run in range(NUM_EVALUATION_EPISODES *10):
@@ -80,7 +104,6 @@ def evaluation_twelve(choice):
     print(f'The Mean Reward is: {best_mean}')
     return best_mean 
 
-import numpy as np
 
 
 # def compute_aggregate_statistics_scaled(universal_nTable, num_agents):

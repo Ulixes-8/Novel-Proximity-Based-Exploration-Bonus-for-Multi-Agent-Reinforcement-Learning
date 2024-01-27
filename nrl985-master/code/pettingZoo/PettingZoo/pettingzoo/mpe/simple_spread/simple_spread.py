@@ -165,104 +165,141 @@ class Scenario(BaseScenario):
 
             self.convert_values(landmark, world)
 
+    # def twelve_agent(self, i, agent, test):
+    #     if i == 0:
+    #         if test:
+    #             agent.state.p_pos = np.array([4/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-4/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+        
+    #     elif i == 1:
+    #         if test:
+    #             agent.state.p_pos = np.array([4/1.414, 1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-1/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 2:
+    #         if test:
+    #             agent.state.p_pos = np.array([-4/1.414, -1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([1/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 3:
+    #         if test:
+    #             agent.state.p_pos = np.array([4/1.414, -1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([4/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 4:
+    #         if test:
+    #             agent.state.p_pos = np.array([-1/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([4/1.414, 1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+        
+    #     elif i == 5:
+    #         if test:
+    #             agent.state.p_pos = np.array([4/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([4/1.414, -1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 6:
+    #         if test:
+    #             agent.state.p_pos = np.array([-4/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([4/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 7:
+    #         if test:
+    #             agent.state.p_pos = np.array([-1/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([1/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 8:
+    #         if test:
+    #             agent.state.p_pos = np.array([1/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-1/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 9:
+    #         if test:
+    #             agent.state.p_pos = np.array([-4/1.414, 1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-4/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 10:
+    #         if test:
+    #             agent.state.p_pos = np.array([1/1.414, 4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-4/1.414, -1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    #     elif i == 11:
+    #         if test:
+    #             agent.state.p_pos = np.array([-4/1.414, -4/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+    #         else:
+    #             agent.state.p_pos = np.array([-4/1.414, 1/1.414])
+    #             agent.state.p_vel = np.array([0,0])
+
+    
     def twelve_agent(self, i, agent, test):
-        if i == 0:
-            if test:
-                agent.state.p_pos = np.array([4/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-4/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
-        
-        elif i == 1:
-            if test:
-                agent.state.p_pos = np.array([4/1.414, 1/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-1/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
+        positions_train = {
+            0: np.array([3.0, 0]),
+            1: np.array([2.598, 1.5]),
+            2: np.array([1.5, 2.598]),
+            3: np.array([0, 3.0]),
+            4: np.array([-1.5, 2.598]),
+            5: np.array([-2.598, 1.5]),
+            6: np.array([-3.0, 0]),
+            7: np.array([-2.598, -1.5]),
+            8: np.array([-1.5, -2.598]),
+            9: np.array([0, -3.0]),
+            10: np.array([1.5, -2.598]),
+            11: np.array([2.598, -1.5])
+        }
 
-        elif i == 2:
-            if test:
-                agent.state.p_pos = np.array([-4/1.414, -1/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([1/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
+        positions_test = {
+            0: positions_train[6],
+            1: positions_train[4],
+            2: positions_train[10],
+            3: positions_train[5],
+            4: positions_train[1],
+            5: positions_train[3],
+            6: positions_train[0],
+            7: positions_train[8],
+            8: positions_train[7],
+            9: positions_train[11],
+            10: positions_train[2],
+            11: positions_train[9]
+        }
 
-        elif i == 3:
-            if test:
-                agent.state.p_pos = np.array([4/1.414, -1/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([4/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
+        agent.state.p_vel = np.array([0, 0])
 
-        elif i == 4:
-            if test:
-                agent.state.p_pos = np.array([-1/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([4/1.414, 1/1.414])
-                agent.state.p_vel = np.array([0,0])
-        
-        elif i == 5:
-            if test:
-                agent.state.p_pos = np.array([4/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([4/1.414, -1/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 6:
-            if test:
-                agent.state.p_pos = np.array([-4/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([4/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 7:
-            if test:
-                agent.state.p_pos = np.array([-1/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([1/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 8:
-            if test:
-                agent.state.p_pos = np.array([1/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-1/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 9:
-            if test:
-                agent.state.p_pos = np.array([-4/1.414, 1/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-4/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 10:
-            if test:
-                agent.state.p_pos = np.array([1/1.414, 4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-4/1.414, -1/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        elif i == 11:
-            if test:
-                agent.state.p_pos = np.array([-4/1.414, -4/1.414])
-                agent.state.p_vel = np.array([0,0])
-            else:
-                agent.state.p_pos = np.array([-4/1.414, 1/1.414])
-                agent.state.p_vel = np.array([0,0])
-
-        
+        if test:
+            agent.state.p_pos = positions_test[i]
+        else:
+            agent.state.p_pos = positions_train[i]
 
     def four_agent(self, i, agent, test):
         if i == 0:

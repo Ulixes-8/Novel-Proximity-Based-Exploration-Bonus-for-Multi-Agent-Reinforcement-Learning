@@ -64,49 +64,49 @@ def _set_up(choice):
 
     
 
-def train(choice):
+# def train(choice):
 
-    """
-    Creates, trains and saves agents. 
+#     """
+#     Creates, trains and saves agents. 
     
-    choice - The choice of the agent to train
-    """
+#     choice - The choice of the agent to train
+#     """
 
-    print("Train is running")
-    agent_type, env, agents, train_choice = _set_up(choice)
-    detailed_exploration_bonus = {1: [], 333: [], 667: [], 1000: []}
+#     print("Train is running")
+#     agent_type, env, agents, train_choice = _set_up(choice)
+#     detailed_exploration_bonus = {1: [], 333: [], 667: [], 1000: []}
 
-    exploration_bonus_dict = {agent_name: [] for agent_name in agents.keys()}
-    reward_array = np.zeros(NUM_OF_EPISODES)
-    episodes_array = np.array([i+1 for i in range(NUM_OF_EPISODES)])
+#     exploration_bonus_dict = {agent_name: [] for agent_name in agents.keys()}
+#     reward_array = np.zeros(NUM_OF_EPISODES)
+#     episodes_array = np.array([i+1 for i in range(NUM_OF_EPISODES)])
 
-    print(f'Training {NUM_OF_AGENTS} agents of type {choice} over {NUM_OF_EPISODES} episodes')
-    for episode_num in range(NUM_OF_EPISODES):
-        reward = train_choice(env, agents, episode_num)
-        reward_array[episode_num] = reward
-        for agent_name, agent_obj in agents.items():
-            if hasattr(agent_obj, 'exploration_bonuses'):
-                # Store the mean of exploration bonuses for the current episode
-                mean_bonus = np.mean(agent_obj.exploration_bonuses[-NUM_OF_CYCLES:])  # Assuming NUM_OF_CYCLES is the number of timesteps per episode
-                exploration_bonus_dict[agent_name].append(mean_bonus)
+#     print(f'Training {NUM_OF_AGENTS} agents of type {choice} over {NUM_OF_EPISODES} episodes')
+#     for episode_num in range(NUM_OF_EPISODES):
+#         reward = train_choice(env, agents, episode_num)
+#         reward_array[episode_num] = reward
+#         for agent_name, agent_obj in agents.items():
+#             if hasattr(agent_obj, 'exploration_bonuses'):
+#                 # Store the mean of exploration bonuses for the current episode
+#                 mean_bonus = np.mean(agent_obj.exploration_bonuses[-NUM_OF_CYCLES:])  # Assuming NUM_OF_CYCLES is the number of timesteps per episode
+#                 exploration_bonus_dict[agent_name].append(mean_bonus)
                 
-        # if episode_num in [1, 333, 667, 1000]:
-        #     for agent in agents.values():
-        #         if isinstance(agent, EB_MARL_Comm):  # Check if the agent is of the correct type
-        #             timestep_bonuses = agent.get_exploration_bonuses_for_episode(episode_num, list(range(1, NUM_OF_CYCLES + 1)))
-        #             detailed_exploration_bonus[episode_num].append(timestep_bonuses)
+#         # if episode_num in [1, 333, 667, 1000]:
+#         #     for agent in agents.values():
+#         #         if isinstance(agent, EB_MARL_Comm):  # Check if the agent is of the correct type
+#         #             timestep_bonuses = agent.get_exploration_bonuses_for_episode(episode_num, list(range(1, NUM_OF_CYCLES + 1)))
+#         #             detailed_exploration_bonus[episode_num].append(timestep_bonuses)
                     
 
-        if episode_num % 100 == 0:
-            print(episode_num)
+#         if episode_num % 100 == 0:
+#             print(episode_num)
 
-    mean_exploration_bonus_per_episode = np.mean(list(exploration_bonus_dict.values()), axis=0)
+#     mean_exploration_bonus_per_episode = np.mean(list(exploration_bonus_dict.values()), axis=0)
 
-    save(agents, episodes_array, reward_array, agent_type, NUM_OF_AGENTS, NUM_OF_CYCLES, NUM_OF_EPISODES, LOCAL_RATIO, mean_exploration_bonus_per_episode, detailed_exploration_bonus=detailed_exploration_bonus)
+#     save(agents, episodes_array, reward_array, agent_type, NUM_OF_AGENTS, NUM_OF_CYCLES, NUM_OF_EPISODES, LOCAL_RATIO, mean_exploration_bonus_per_episode, detailed_exploration_bonus=detailed_exploration_bonus)
 
 
 
-def _episode_original_multiple(env, agents, episode_num, oracle):
+def _episode_original_multiple(env, agents, episode_num, oracle=None):
 
     """
     This trains the original Lidard algorithm for MARL agents for one episode
@@ -133,8 +133,9 @@ def _episode_original_multiple(env, agents, episode_num, oracle):
             agent_old_state[agent_name] = encode_state(observations[agent_name], NUM_OF_AGENTS)
             action = _policy(agent_name, agents, observations[agent_name], False, t, episode_num)
             actions[agent_name] = action
-            oracle.update(agent_old_state[agent_name], action) #Update the oracle with the state-action pair
-            oracle.update_real_state_map(agent_old_state[agent_name], real_state) # Update the oracle with the real state
+            if oracle is not None: 
+                oracle.update(agent_old_state[agent_name], action) #Update the oracle with the state-action pair
+                oracle.update_real_state_map(agent_old_state[agent_name], real_state) # Update the oracle with the real state
             
             
         observations, rewards, terminations, truncations, infos = env.step(actions)
@@ -157,7 +158,7 @@ def _episode_original_multiple(env, agents, episode_num, oracle):
 
 
 
-def _episode_EB_Lidard(env, agents, episode_num, oracle):
+def _episode_EB_Lidard(env, agents, episode_num, oracle=None):
     agent_old_state = {agent: -1 for agent in agents.keys()}
     observations = env.reset()    
 
@@ -177,8 +178,9 @@ def _episode_EB_Lidard(env, agents, episode_num, oracle):
             action = _policy(agent_name, agents, real_state, False, t, episode_num)
             actions[agent_name] = action
             
-            oracle.update(encoded_state, action) # Update the oracle with the state-action pair
-            oracle.update_real_state_map(encoded_state, real_state) # Update the oracle with the real state
+            if oracle is not None: 
+                oracle.update(encoded_state, action) # Update the oracle with the state-action pair
+                oracle.update_real_state_map(encoded_state, real_state) # Update the oracle with the real state
             
 
         observations, rewards, terminations, truncations, infos = env.step(actions)

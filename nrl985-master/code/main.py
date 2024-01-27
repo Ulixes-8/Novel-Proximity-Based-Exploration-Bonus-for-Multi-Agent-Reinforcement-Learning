@@ -1,11 +1,12 @@
 """This will start the program.  Contains a small menu 
     which can either train a model or run a trained model"""
 from file_management import show_all_files
-from train import train
+# from train import train
 from evaluation import evaluation
 from show import play_on_show
-from hyperparameters import agent_hyperparameters
+from hyperparameters import agent_hyperparameters, experiments_choice
 import time
+from twelve_experiments import experiment_pipeline
 
 def menu():
 
@@ -15,17 +16,18 @@ def menu():
     """The menu which runs the main program"""
 
     print('Please choose an option:\n'
-    '1. Train Agents (Please check hyperparameters and right Agent chosen)\n'
+    # '1. Train Agents (Please check hyperparameters and right Agent chosen)\n'
     '2. Test Agents (Please check hyperparameters used)\n'
-    '3. Load and Show Agents')
+    '3. Load and Show Agents\n'
+    '4. 12 Experiments\n')
     choice = int(input())
     print('Time started')
     start_time = time.time()
     
     if choice == 1:
         print('\n')
-        print('Episode Number ran')
-        train(agent_hyperparameters['agent_choice'])
+        print('No longer an option')
+        # train(agent_hyperparameters['agent_choice'])
 
     elif choice == 2:
         print('\n')
@@ -34,7 +36,12 @@ def menu():
     elif choice == 3:
         print('\n')
         _play_agents()
-
+        
+    elif choice == 4:
+        print('\n')
+        experiment_pipeline(experiments_choice, agent_hyperparameters['agent_choice'])
+        
+        
     print('\n')
     print(f'--- {time.time() - start_time} seconds ---')
     print('\n')

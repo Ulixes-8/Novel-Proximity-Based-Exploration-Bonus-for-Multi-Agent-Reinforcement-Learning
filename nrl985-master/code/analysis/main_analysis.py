@@ -20,7 +20,8 @@ def create_results(num_of_episodes):
     num_of_episodes - How many episodes to take into consideration - EG 100 will take the last 100 episodes
     """
 
-    FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
+    # FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
+    FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_100_0_' #100 Episodes for testing
 
 
     # These are where the data is stored on my machine
@@ -70,7 +71,8 @@ def create_results(num_of_episodes):
     get_average_star_ten = get_average_values(star_ten, FIRST_PART)
     get_average_star_eleven = get_average_values(star_eleven, FIRST_PART)
     get_average_star_zero_two = get_average_values(star_zero_two, FIRST_PART)
-    get_average_random = get_average_values([0], 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_')
+    # get_average_random = get_average_values([0], 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_')
+    get_average_random = get_average_values([0], 'saved_data_twelve/AgentType.RANDOM_12_10_100_0_') #100 episodes for testing
 
     # Creates the Mean and SD
     dynamic_mean, dynamic_sd = create_average(get_average_dynamic, num_of_episodes, 'Dynamic')

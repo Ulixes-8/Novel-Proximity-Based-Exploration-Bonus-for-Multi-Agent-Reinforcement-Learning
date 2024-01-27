@@ -56,8 +56,8 @@ def create_12_star(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
 
     filename = FIRST_PART+'22.pkl'
     episodes = [file for file in _pickle_loader(filename)][0]['reward'][2][::episode_output] 
@@ -99,8 +99,8 @@ def create_dynamic_check(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
 
     filename = FIRST_PART+'22.pkl'
     episodes = [file for file in _pickle_loader(filename)][0]['reward'][2][::episode_output] 
@@ -142,8 +142,8 @@ def best_plots(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     filename = FIRST_PART+'0.pkl'
@@ -318,8 +318,8 @@ def create_ring(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     filename = RANDOM_PART+'0.pkl'
@@ -381,8 +381,8 @@ def create_star(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     filename = RANDOM_PART+'0.pkl'
@@ -469,8 +469,8 @@ def main_twelve(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     filename = FIRST_PART+'0.pkl'
@@ -586,8 +586,8 @@ def create_basic(episode_output):
     """
 
     FIRST_PART = 'saved_data_twelve/AgentType.ORIGINAL_12_10_10000_0_'
-    # RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data_twelve/AgentType.RANDOM_12_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     filename = RANDOM_PART+'0.pkl'
@@ -652,8 +652,8 @@ def main_four(episode_output):
 
     FIRST_PART = 'saved_data/AgentType.ORIGINAL_4_10_10000_0_'
     FIRST_PART_IQL = 'saved_data/AgentType.IQL_4_10_10000_0_'
-    # RANDOM_PART = 'saved_data/AgentType.RANDOM_4_10_10000_0_'
-    RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
+    RANDOM_PART = 'saved_data/AgentType.RANDOM_4_10_10000_0_'
+    # RANDOM_PART = 'saved_data_twelve/AgentType.EB_Lidard_12_10_1000_0_'
     
 
     # This is the different tests which have been done and the data saved

@@ -37,12 +37,13 @@ def ring_graph(num_of_agents, k):
     """
     Creates a ring graph adjacency table
     num_of_agents - The number of agents
-    k - The number of agents left or right to be close neighbours.  k = 1 means a ring graph of degree 2, k = 2, degree 4 etc.
+    k - Each node is connected to k nearest neighbors in ring topology.
 
-    Return a ring graph adjacency table of degree k*2.
+    Return a ring graph adjacency table of degree k.
 
     """
-
+    k = k // 2  # So k is the number of connections to each side
+    
     adj = []
 
     for i in range(num_of_agents):
@@ -61,6 +62,87 @@ def ring_graph(num_of_agents, k):
 
     return adj
 
+
+import random
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+def watts_strogatz(num_of_agents, k, p):
+    """
+    Creates a Watts-Strogatz graph adjacency table.
+    num_of_agents - The number of agents
+    k - Each node is connected to k nearest neighbors in ring topology.
+    p - The probability of rewiring each edge.
+
+    Returns an adjacency table representing a Watts-Strogatz graph.
+    
+    """
+    if k % 2 != 0 or k >= num_of_agents:
+        raise ValueError("k must be even and less than num_of_agents")
+
+    # Initialize adjacency matrix with zeros
+    adj = [[0 for _ in range(num_of_agents)] for _ in range(num_of_agents)]
+    
+    # Create a ring lattice (regular graph)
+    for i in range(num_of_agents):
+        for j in range(1, k // 2 + 1): 
+            right_neighbor = (i + j) % num_of_agents
+            left_neighbor = (i - j) % num_of_agents
+            adj[i][right_neighbor] = 1
+            adj[right_neighbor][i] = 1  # Ensure symmetry
+            adj[i][left_neighbor] = 1
+            adj[left_neighbor][i] = 1  # Ensure symmetry
+    
+
+    plot_graph(adj, num_of_agents, 'wattsstrogatz_prewiring.png', k)
+
+    # Rewire edges with probability p
+    for i in range(num_of_agents):
+        for j in range(1, k // 2 + 1):
+            if random.random() < p:
+                old_neighbor = (i + j) % num_of_agents
+                potential_new_neighbors = [n for n in range(num_of_agents) if n != i and adj[i][n] == 0 and adj[n][i] == 0]
+                if potential_new_neighbors:
+                    new_neighbor = random.choice(potential_new_neighbors)
+
+                    # Remove connection to the original neighbor
+                    adj[i][old_neighbor] = 0
+                    adj[old_neighbor][i] = 0
+
+                    # Add new rewired connection
+                    adj[i][new_neighbor] = 1
+                    adj[new_neighbor][i] = 1
+    
+    plot_graph(adj, num_of_agents, 'wattsstrogatz_postwiring.png', k)
+
+
+    return adj
+
+def plot_graph(adj, num_of_agents, fig_name, k):
+    G = nx.Graph()
+    for i in range(num_of_agents):
+        for j in range(num_of_agents):
+            if adj[i][j] == 1:
+                G.add_edge(i, j)
+
+    # Ensure graph is displayed with nodes in numerical order and in a circle
+    pos = {}
+    for i in range(num_of_agents):
+        pos[i] = [np.cos(2*np.pi*i/num_of_agents), np.sin(2*np.pi*i/num_of_agents)]
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray')
+
+    # Incremental integer for filename
+    increment = 0
+    filename = f'saved_data/watts_strogatz_figs/{fig_name}_K={k}_{increment}.png'
+    while os.path.exists(filename):
+        increment += 1
+        filename = f'saved_data/watts_strogatz_figs/{fig_name}_K={k}_{increment}.png'
+
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()  # Clear the current figure after saving it
 
 def star_graph(num_of_agents, centre):
 
@@ -142,12 +224,12 @@ def fully_connected(num_of_agents):
 # Adjacency graph & connection slow & gamma hop
 multiple_graph_parameters = [
     {   # Fully Connected
-        'graph': fully_connected(4),
+        'graph': fully_connected(12),
         'connection_slow': False,
         'gamma_hop': 1
     },
     {   # Line Graph with gamma = 3
-        'graph': line_graph(4),
+        'graph': line_graph(12),
         'connection_slow': True,
         'gamma_hop': 1
     },
@@ -167,7 +249,7 @@ multiple_graph_parameters = [
         'gamma_hop': 1
     },
     {   # Ring with 10 connections
-        'graph': ring_graph(4, 1),
+        'graph': ring_graph(12, 2),
         'connection_slow': True,
         'gamma_hop': 2
     },
@@ -285,7 +367,7 @@ reward_multiple_parameters = [
 # LOCAL_RATIO = 0
 train_multiple_parameters = [
     {
-        'num_of_episodes': 1000,
+        'num_of_episodes': 10000,
         'num_of_cycles': 10,
         'local_ratio': 0,
 
@@ -306,16 +388,147 @@ dynamic_parameters = [
     }
 ]
 
-# graph_hyperparameters = multiple_graph_parameters[0] #Fully connected
+
+experiments_choice = [
+
+#EXPERIMENT 1 ----------------------------------------------------------
+
+    # {   # Fully Connected with Gamma = 0
+    #     'graph': fully_connected(12),
+    #     'connection_slow': False,
+    #     'gamma_hop': 0,
+    #     'experiment_name': 'Fully Connected, γ = 0'
+    # },
+    
+    # {   # Fully Connected with Gamma = 1
+    #     'graph': fully_connected(12),
+    #     'connection_slow': False,
+    #     'gamma_hop': 1,
+    #     'experiment_name': 'Fully Connected, γ = 1'
+    # },
+    
+    
+    # {   # Star with Gamma = 1, Center on Agent 1
+    #     'graph': star_graph(12, 1),
+    #     'connection_slow': True,
+    #     'gamma_hop': 1,
+    #     'experiment_name': 'Star, γ = 1, C = 1'
+    # },
+    
+    
+    # {   # Star with Gamma = 2, Center on Agent 1
+    #     'graph': star_graph(12, 1),
+    #     'connection_slow': True,
+    #     'gamma_hop': 2,
+    #     'experiment_name': 'Star, γ = 2, C = 1'
+    # },
+    
+# #EXPERIMENT 2 ----------------------------------------------------------
+    
+    # {   # Line Graph with Gamma = 1
+    #     'graph': line_graph(12),
+    #     'connection_slow': True,
+    #     'gamma_hop': 1,
+    #     'experiment_name': 'Line, γ = 1'
+    # },
+    
+    # {   # Line Graph with Gamma = 6
+    #     'graph': line_graph(12),
+    #     'connection_slow': True,
+    #     'gamma_hop': 6,
+    #     'experiment_name': 'Line, γ = 6'
+    # },
+    
+    # {   # Ring Centered on 2 with Gamma = 1
+    #     'graph': ring_graph(12, 2),
+    #     'connection_slow': True,
+    #     'gamma_hop': 1,
+    #     'experiment_name': 'Ring, γ = 1, K = 2'
+    # },
+
+    # {   # Ring Centered on 2 with Gamma = 2
+    #     'graph': ring_graph(12, 2),
+    #     'connection_slow': True,
+    #     'gamma_hop': 2,
+    #     'experiment_name': 'Ring, γ = 2, K = 2'
+    # },
+
+# #EXPERIMENT 3 ----------------------------------------------------------
+    
+    {   # Ring Degree 4 with Gamma = 1
+        'graph': ring_graph(12, 4),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'Ring, γ = 1, K = 4'
+    },
+    
+    {   # Ring Degree 4 with Gamma = 2
+        'graph': ring_graph(12, 4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'Ring, γ = 2, K = 4'
+    },   
+
+  
+    {   # Ring Degree 2 with Gamma = 1
+        'graph': ring_graph(12, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'Ring, γ = 1, K = 2'
+    },
+
+    {   # Ring Degree 2 with Gamma = 2
+        'graph': ring_graph(12, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'Ring, γ = 2, K = 2'
+    },
+    
+
+    
+#EXPERIMENT 4 ----------------------------------------------------------
+#Watts-Strogatz
+
+    # { # Watts-Strogatz with Gamma = 1, K = 2, P = 0.2
+    #  'graph': watts_strogatz(12, 2, 0.2),
+    #  'connection_slow': True,
+    #  'gamma_hop': 1,
+    #  'experiment_name': 'Watts-Strogatz, γ = 1, K = 2, P = 0.2'
+    # },
+    
+    # { #Watts-Strogatz with Gamma = 2, K = 2, P = 0.2
+    #  'graph': watts_strogatz(12, 2, 0.2),
+    #  'connection_slow': True,
+    #  'gamma_hop': 2,
+    #  'experiment_name': 'Watts-Strogatz, γ = 2, K = 2, P = 0.2'
+    # },
+
+    # { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.2
+    #  'graph': watts_strogatz(12, 4, 0.2), 
+    #  'connection_slow': True, 
+    #  'gamma_hop': 1, 
+    #  'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.2'
+    # },
+    
+    # { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.2
+    #  'graph': watts_strogatz(12, 4, 0.2), 
+    #  'connection_slow': True, 
+    #  'gamma_hop': 2, 
+    #  'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.2'
+    # },    
+
+]
+
+graph_hyperparameters = multiple_graph_parameters[0] #Fully connected
 # graph_hyperparameters = multiple_graph_parameters[1] #Line
 # graph_hyperparameters = multiple_graph_parameters[4] #  Star
-graph_hyperparameters = multiple_graph_parameters[5] #Ring
+# graph_hyperparameters = multiple_graph_parameters[5] #Ring
 
-agent_hyperparameters = agent_multiple_parameters[4] #Vanilla Lidard 4 agents
+# agent_hyperparameters = agent_multiple_parameters[4] #Vanilla Lidard 4 agents
 # agent_hyperparameters = agent_multiple_parameters[6] #EB Lidard 4 agents
 
 
-# agent_hyperparameters = agent_multiple_parameters[5] #Vanilla Lidard 12 agents
+agent_hyperparameters = agent_multiple_parameters[5] #Vanilla Lidard 12 agents
 # agent_hyperparameters = agent_multiple_parameters[7] #EB Lidard 12 agents
 
 iql_hyperparameters = iql_multiple_parameters[0]
@@ -326,7 +539,9 @@ eb_marl_hyperparameters = eb_marl_multiple_parameters[0]
 
 evaluation_hyperparameters = evaluation_multiple_parameters[0]
 
-reward_function = reward_multiple_parameters[0] #Mean reward 4
+# reward_function = reward_multiple_parameters[0] #Mean reward 4
+
+reward_function = reward_multiple_parameters[0] #12
 # reward_function = reward_multiple_parameters[2] #12
 
 train_hyperparameters = train_multiple_parameters[0]

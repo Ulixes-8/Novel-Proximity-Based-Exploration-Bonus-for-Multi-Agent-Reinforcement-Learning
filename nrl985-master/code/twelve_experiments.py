@@ -230,38 +230,102 @@ def _policy(agent_name, agents, observation, done, time_step, episode_num=0):
     #print(f'observation: {observation}')
     return agent.policy(encode_state(observation, NUM_OF_AGENTS), time_step)
 
-
+import multiprocessing
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import pandas as pd
+import seaborn as sns
+
+def run_experiment(experiment, choice, index, experiment_rewards):
+    try:
+        print(f"Starting experiment {experiment['experiment_name']}")
+        experiment_reward = twelve_experiments(experiment, choice)
+        experiment_rewards[index] = experiment_reward
+        print(f"Completed experiment {experiment['experiment_name']}")
+    except Exception as e:
+        print(f"Error in experiment {experiment['experiment_name']}: {e}")
 
 
 def experiment_pipeline(experiments, choice):
-    experiment_rewards = []
-    
-    for experiment in experiments: 
-        print(experiment['experiment_name'])
-        experiment_reward = twelve_experiments(experiment, choice)
-        experiment_rewards.append(experiment_reward)
+    manager = multiprocessing.Manager()
+    experiment_rewards = manager.list([None] * len(experiments))
+    processes = []
 
+    # Create and start processes for each experiment
+    for i, experiment in enumerate(experiments):
+        process = multiprocessing.Process(target=run_experiment, args=(experiment, choice, i, experiment_rewards))
+        processes.append(process)
+        process.start()
+
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
+
+    # Convert managed list back to a regular list for plotting
+    experiment_rewards = list(experiment_rewards)
+    for i, reward in enumerate(experiment_rewards): 
+        if reward is None:
+            print(f"Warning: No results for experiment at index {i}")
+            continue  # or handle the missing data appropriately
+
+
+    # Define line styles and colors for different experiments
+    line_styles = ['-', '-', '--', '--', '-.', '-.']
+    colors = ['blue', 'green', 'red', 'orange', 'brown', 'purple']
     # Plot the results
     fig, ax = plt.subplots()
     ax.set_xlabel('Episode Number')
-    ax.set_ylabel('Reward')
-    ax.set_title('Test-time Rewards Over Episodes')
+    ax.set_ylabel('Globally Averaged Reward')
     ax.grid(True)
 
+        
     for i, experiment in enumerate(experiments):
         rewards_array, episode_nums = experiment_rewards[i]
-        average_rewards = np.mean(rewards_array, axis=1)  # Compute average reward across all columns for each row
-        ax.plot(episode_nums, average_rewards, label=experiment['experiment_name'])
+        
+        # Calculate average rewards
+        average_rewards_shaded = np.mean(rewards_array, axis=1)
+
+        # Smooth the average rewards
+        average_rewards = pd.Series(average_rewards_shaded).rolling(500, min_periods=1).mean()
+        
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']
+
+        ax.plot(episode_nums, average_rewards, line_style, label=label, color=color)
+        ax.fill_between(episode_nums, rewards_array.min(axis=1), rewards_array.max(axis=1), alpha=0.2, color=color) #WE DID THIS
+        #Investigate ax.fill_between and ax.plot hyperparams... see if we can make it solid? 
+        # ax.plot(episode_nums, average_rewards_shaded, color=color, alpha=0.2) #TEST THIS TOMORROW 
+        # ax.fill_between(episode_nums, average_rewards_shaded, alpha=0.2, color=color) #TEST THIS TOMORROW
 
     ax.legend()
-    
-    random_number = random.randint(0, 999999999)
+    plt.tight_layout()  
 
-    # Append the random number to the filename
+    random_number = random.randint(0, 999999999)
     filename = f'saved_data/figs/test_time_rewards_{random_number}.png'
     print(f"Figure saved as {filename}")
-    # Save the plot with the new filename
     plt.savefig(filename)
+
+import networkx as nx
+
+
+def plot_graph(adj, num_of_agents, fig_name):
+    G = nx.Graph()
+    for i in range(num_of_agents):
+        for j in range(num_of_agents):
+            if adj[i][j] == 1:
+                G.add_edge(i, j)
+
+    #Ensure graph is displayed with nodes in numerical order and in a circle
+    pos = {}
+    for i in range(num_of_agents):
+        pos[i] = [np.cos(2*np.pi*i/num_of_agents), np.sin(2*np.pi*i/num_of_agents)]
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray')
+    
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/watts_strogatz_figs/{fig_name}_{random_number}.png'
+    print(f"Figure saved as {filename}")
+    
+    plt.savefig(filename)
+    plt.clf()  # Clear the current figure after saving it
