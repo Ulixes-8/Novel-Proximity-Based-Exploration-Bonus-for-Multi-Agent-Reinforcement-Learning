@@ -130,42 +130,83 @@ class Oracle:
         self.real_state_map[hash_value] = real_state
         
     def create_bubble_plot(self):
-        """
-        Plots and saves a bubble plot of the visit counts in the universal nTable.
-        """
         directory = "saved_data/observer_figs"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        object_id_key_name = f"oracle_{id(self)}"  # Unique identifier for the Oracle instance
+        object_id_key_name = f"oracle_{id(self)}"
 
-        # Aggregate visitation counts by (x, y) coordinates
         aggregated_counts = {}
         for hashed_state, actions in self.universal_nTable.items():
             real_state = self.real_state_map[hashed_state]
-            x, y = real_state[-2], real_state[-1]  # Extract x and y coordinates
+            x, y = real_state[-2], real_state[-1]
 
             if (x, y) not in aggregated_counts:
                 aggregated_counts[(x, y)] = 0
-            aggregated_counts[(x, y)] += sum(actions.values())  # Sum visitation counts
+            aggregated_counts[(x, y)] += sum(actions.values())
 
-        # Create the bubble plot
         x_coords, y_coords, sizes = zip(*[(x, y, count) for (x, y), count in aggregated_counts.items()])
         
+        scaled_sizes = [np.log1p(size) * 100 for size in sizes]  # Adjust scaling as needed for visual representation
+
         plt.figure(figsize=(10, 6))
-        # Normalize the sizes for color mapping
         norm = mcolors.Normalize(vmin=min(sizes), vmax=max(sizes))
-        scatter = plt.scatter(x_coords, y_coords, s=sizes, c=sizes, alpha=0.5, norm=norm)
+        scatter = plt.scatter(x_coords, y_coords, s=scaled_sizes, c=sizes, cmap='viridis', alpha=0.5, norm=norm)
+
         plt.xlabel('X Coordinate')
         plt.ylabel('Y Coordinate')
         plt.title('Agent Exploration Bubble Plot')
-        plt.colorbar(scatter, label='Visitation Counts')
+        colorbar = plt.colorbar(scatter, label='Visitation Counts')
+        
+        # Assuming the goal state is highlighted as before, include its plotting here
+        # For example, using a red marker for the goal state:
+        plt.scatter(0, 0, s=100, c='red', edgecolor='gold', linewidth=2, alpha=0.9, label='Goal State')  # Adjust size as needed
 
-        # Construct unique filename
+        # Position the legend outside the bubble chart, right next to the title
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=1)
+
         unique_filename = f"{directory}/{object_id_key_name}_bubble_plot_{uuid.uuid4()}.png"
         plt.savefig(unique_filename)
         print(f"Saved figure: {unique_filename}")
         plt.close()
+        
+    # def create_bubble_plot(self):
+    #     """
+    #     Plots and saves a bubble plot of the visit counts in the universal nTable.
+    #     """
+    #     directory = "saved_data/observer_figs"
+    #     if not os.path.exists(directory):
+    #         os.makedirs(directory)
+
+    #     object_id_key_name = f"oracle_{id(self)}"  # Unique identifier for the Oracle instance
+
+    #     # Aggregate visitation counts by (x, y) coordinates
+    #     aggregated_counts = {}
+    #     for hashed_state, actions in self.universal_nTable.items():
+    #         real_state = self.real_state_map[hashed_state]
+    #         x, y = real_state[-2], real_state[-1]  # Extract x and y coordinates
+
+    #         if (x, y) not in aggregated_counts:
+    #             aggregated_counts[(x, y)] = 0
+    #         aggregated_counts[(x, y)] += sum(actions.values())  # Sum visitation counts
+
+    #     # Create the bubble plot
+    #     x_coords, y_coords, sizes = zip(*[(x, y, count) for (x, y), count in aggregated_counts.items()])
+        
+    #     plt.figure(figsize=(10, 6))
+    #     # Normalize the sizes for color mapping
+    #     norm = mcolors.Normalize(vmin=min(sizes), vmax=max(sizes))
+    #     scatter = plt.scatter(x_coords, y_coords, s=sizes, c=sizes, alpha=0.5, norm=norm)
+    #     plt.xlabel('X Coordinate')
+    #     plt.ylabel('Y Coordinate')
+    #     plt.title('Agent Exploration Bubble Plot')
+    #     plt.colorbar(scatter, label='Visitation Counts')
+
+    #     # Construct unique filename
+    #     unique_filename = f"{directory}/{object_id_key_name}_bubble_plot_{uuid.uuid4()}.png"
+    #     plt.savefig(unique_filename)
+    #     print(f"Saved figure: {unique_filename}")
+    #     plt.close()
     
     def plot_episode_statistics(self):
         """

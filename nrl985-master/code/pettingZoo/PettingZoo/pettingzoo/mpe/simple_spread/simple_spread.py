@@ -57,7 +57,7 @@ simple_spread_v2.env(N=3, local_ratio=0.5, max_cycles=25, continuous_actions=Fal
 
 import numpy as np
 from gymnasium.utils import EzPickle
-
+import random
 from pettingzoo.utils.conversions import parallel_wrapper_fn
 
 from .._mpe_utils.core import Agent, Landmark, World
@@ -264,36 +264,86 @@ class Scenario(BaseScenario):
 
     
     def twelve_agent(self, i, agent, test):
+        # positions_train = {
+        #     0: np.array([3.0, 0]),
+        #     1: np.array([2.598, 1.5]),
+        #     2: np.array([1.5, 2.598]),
+        #     3: np.array([0, 3.0]),
+        #     4: np.array([-1.5, 2.598]),
+        #     5: np.array([-2.598, 1.5]),
+        #     6: np.array([-3.0, 0]),
+        #     7: np.array([-2.598, -1.5]),
+        #     8: np.array([-1.5, -2.598]),
+        #     9: np.array([0, -3.0]),
+        #     10: np.array([1.5, -2.598]),
+        #     11: np.array([2.598, -1.5])
+        # }
+        
+        # # For 10**4 state space
+        # positions_train = {
+        #     0: np.array([1.6, 0.]),
+        #     1: np.array([1.2, 0.8]),
+        #     2: np.array([0.8, 1.2]),
+        #     3: np.array([0., 1.6]),
+        #     4: np.array([-0.8, 1.2]),
+        #     5: np.array([-1.2, 0.8]),
+        #     6: np.array([-1.6, 0.]),
+        #     7: np.array([-1.2, -0.8]),
+        #     8: np.array([-0.8, -1.2]),
+        #     9: np.array([0., -1.6]),
+        #     10: np.array([0.8, -1.2]),
+        #     11: np.array([1.2, -0.8])
+        # }
+    
         positions_train = {
-            0: np.array([3.0, 0]),
-            1: np.array([2.598, 1.5]),
-            2: np.array([1.5, 2.598]),
-            3: np.array([0, 3.0]),
-            4: np.array([-1.5, 2.598]),
-            5: np.array([-2.598, 1.5]),
-            6: np.array([-3.0, 0]),
-            7: np.array([-2.598, -1.5]),
-            8: np.array([-1.5, -2.598]),
-            9: np.array([0, -3.0]),
-            10: np.array([1.5, -2.598]),
-            11: np.array([2.598, -1.5])
+            0: np.array([1.2, 0.]),
+            1: np.array([1.2, 0.8]),
+            2: np.array([0.8, 1.2]),
+            3: np.array([0., 1.2]),
+            4: np.array([-0.8, 1.2]),
+            5: np.array([-1.2, 0.8]),
+            6: np.array([-1.2, 0.]),
+            7: np.array([-1.2, -0.8]),
+            8: np.array([-0.8, -1.2]),
+            9: np.array([0., -1.2]),
+            10: np.array([0.8, -1.2]),
+            11: np.array([1.2, -0.8])
         }
 
+
+        # positions_test = {
+        #     0: np.array([1.2, 0.]),
+        #     1: np.array([-1.2, 0.8]),
+        #     2: np.array([0.8, 1.2]),
+        #     3: np.array([0., -1.2]),
+        #     4: np.array([-0.8, 1.2]),
+        #     5: np.array([1.2, 0.8]),
+        #     6: np.array([-1.2, 0.]),
+        #     7: np.array([1.2, -0.8]),
+        #     8: np.array([-0.8, -1.2]),
+        #     9: np.array([0., 1.2]),
+        #     10: np.array([0.8, -1.2]),
+        #     11: np.array([-1.2, -0.8])
+        # }
+
+        
+        #   Random Swapping for STROGATZ
         positions_test = {
-            0: positions_train[6],
-            1: positions_train[4],
-            2: positions_train[10],
-            3: positions_train[5],
-            4: positions_train[1],
-            5: positions_train[3],
-            6: positions_train[0],
-            7: positions_train[8],
-            8: positions_train[7],
-            9: positions_train[11],
-            10: positions_train[2],
-            11: positions_train[9]
+            0: np.array([0.8, 1.2]),
+            1: np.array([0.8, -1.2]),
+            2: np.array([1.2, 0.]),
+            3: np.array([-0.8, 1.2]),
+            4: np.array([0., 1.2]),
+            5: np.array([1.2, -0.8]),
+            6: np.array([-1.2, 0.]),
+            7: np.array([-1.2, -0.8]),
+            8: np.array([-0.8, -1.2]),
+            9: np.array([0., -1.2]),
+            10: np.array([1.2, 0.8]),
+            11: np.array([-1.2, 0.8])
         }
 
+        
         agent.state.p_vel = np.array([0, 0])
 
         if test:
@@ -302,28 +352,60 @@ class Scenario(BaseScenario):
             agent.state.p_pos = positions_train[i]
 
     def four_agent(self, i, agent, test):
-        if i == 0:
-            # If test is true we swap A & D
-            if test:
-                agent.state.p_pos = np.array([1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-                agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
-            else:
-                agent.state.p_pos = np.array([-1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-                agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
-        if i == 1:
-            agent.state.p_pos = np.array([-1/1.414, -1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-            agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
-        if i == 2:
-            agent.state.p_pos = np.array([1/1.414, -1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-            agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
-        if i == 3:
-            # If test is true we swap A & D
-            if test:
-                agent.state.p_pos = np.array([-1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-                agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
-            else:
-                agent.state.p_pos = np.array([1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
-                agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        # if i == 0:
+        #     # If test is true we swap A & D
+        #     if test:
+        #         agent.state.p_pos = np.array([1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #         agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        #     else:
+        #         agent.state.p_pos = np.array([-1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #         agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        # if i == 1:
+        #     agent.state.p_pos = np.array([-1/1.414, -1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #     agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        # if i == 2:
+        #     agent.state.p_pos = np.array([1/1.414, -1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #     agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        # if i == 3:
+        #     # If test is true we swap A & D
+        #     if test:
+        #         agent.state.p_pos = np.array([-1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #         agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+        #     else:
+        #         agent.state.p_pos = np.array([1/1.414, 1/1.414]) #np_random.uniform(-1, +1, world.dim_p)
+        #         agent.state.p_vel = np.array([0,0]) #agent.state.p_vel = np_random.uniform(-1, +1, world.dim_p)
+                
+                
+
+        
+        positions_train = {
+            0: np.array([-.8, -1.2]),
+            1: np.array([-.8, 1.2]),
+            2: np.array([.8, 1.2]),
+            3: np.array([.8, -1.2]),
+        }
+                
+        positions_test = {
+            0: np.array([-.8, 1.2]),
+            1: np.array([-.8, -1.2]),
+            2: np.array([.8, 1.2]),
+            3: np.array([.8, -1.2]),
+        }
+        
+        # positions_test = {
+        #     0: positions_train[2],
+        #     1: positions_train[3],
+        #     2: positions_train[0],
+        #     3: positions_train[1]
+        # }
+        
+        agent.state.p_vel = np.array([0, 0])
+
+        if test:
+            agent.state.p_pos = positions_test[i]
+        else:
+            agent.state.p_pos = positions_train[i]
+        
 
     def benchmark_data(self, agent, world):
         rew = 0
@@ -434,16 +516,19 @@ class Scenario(BaseScenario):
             
 
             entity.state.obs_vel[i] = correct_values[index_of_smallest_p_vel]
+            # print(entity.state.obs_vel[i])
 
     def convert_values_twelve(self, entity):
-        correct_values = np.array([-8, -7.6, -7.2, -6.8, -6.4, 
-                                   -6, -5.6, -5.2, -4.8, -4.4, 
-                                   -4, -3.6, -3.2, -2.8, -2.4, 
-                                   -2, -1.6, -1.2, -0.8, -0.4,  
-                                    0.0, 0.4, 0.8, 1.2, 1.6,
-                                    2.0, 2.4, 2.8, 3.2, 3.6,
-                                    4.0, 4.4, 4.8, 5.2, 5.6,
-                                    6.0, 6.4, 6.8, 7.2, 7.6,])
+        # correct_values = np.array([-8, -7.6, -7.2, -6.8, -6.4, 
+        #                            -6, -5.6, -5.2, -4.8, -4.4, 
+        #                            -4, -3.6, -3.2, -2.8, -2.4, 
+        #                            -2, -1.6, -1.2, -0.8, -0.4,  
+        #                             0.0, 0.4, 0.8, 1.2, 1.6,
+        #                             2.0, 2.4, 2.8, 3.2, 3.6,
+        #                             4.0, 4.4, 4.8, 5.2, 5.6,
+        #                             6.0, 6.4, 6.8, 7.2, 7.6,])
+        correct_values = np.array([-2, -1.6, -1.2, -0.8, -0.4, 
+                    0.0, 0.4, 0.8, 1.2, 1.6])
         
 
         # This converts the position value
@@ -469,3 +554,5 @@ class Scenario(BaseScenario):
             # print(index_of_smallest_p_vel[0])
             if len(index_of_smallest_p_vel[0]) > 1:
                 index_of_smallest_p_vel = index_of_smallest_p_vel[0][0]
+            entity.state.obs_vel[i] = correct_values[index_of_smallest_p_vel]
+            # print(entity.state.obs_vel[i])
