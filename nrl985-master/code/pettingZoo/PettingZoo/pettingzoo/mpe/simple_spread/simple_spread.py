@@ -309,39 +309,41 @@ class Scenario(BaseScenario):
             10: np.array([0.8, -1.2]),
             11: np.array([1.2, -0.8])
         }
+        
+        # Mirror swapping 
 
+        positions_test = {
+            0: positions_train[6],
+            1: positions_train[5],
+            2: positions_train[4],
+            3: positions_train[9],
+            4: positions_train[2],
+            5: positions_train[1],
+            6: positions_train[0],
+            7: positions_train[11],
+            8: positions_train[10],
+            9: positions_train[3],
+            10: positions_train[8],
+            11: positions_train[7]
+        }
 
-        # positions_test = {
-        #     0: np.array([1.2, 0.]),
-        #     1: np.array([-1.2, 0.8]),
-        #     2: np.array([0.8, 1.2]),
-        #     3: np.array([0., -1.2]),
-        #     4: np.array([-0.8, 1.2]),
-        #     5: np.array([1.2, 0.8]),
-        #     6: np.array([-1.2, 0.]),
-        #     7: np.array([1.2, -0.8]),
-        #     8: np.array([-0.8, -1.2]),
-        #     9: np.array([0., 1.2]),
-        #     10: np.array([0.8, -1.2]),
-        #     11: np.array([-1.2, -0.8])
-        # }
 
         
-        #   Random Swapping for STROGATZ
-        positions_test = {
-            0: np.array([0.8, 1.2]),
-            1: np.array([0.8, -1.2]),
-            2: np.array([1.2, 0.]),
-            3: np.array([-0.8, 1.2]),
-            4: np.array([0., 1.2]),
-            5: np.array([1.2, -0.8]),
-            6: np.array([-1.2, 0.]),
-            7: np.array([-1.2, -0.8]),
-            8: np.array([-0.8, -1.2]),
-            9: np.array([0., -1.2]),
-            10: np.array([1.2, 0.8]),
-            11: np.array([-1.2, 0.8])
-        }
+        # #   Random Swapping for STROGATZ
+        # positions_test = {
+        #     0: np.array([0.8, 1.2]),
+        #     1: np.array([0.8, -1.2]),
+        #     2: np.array([1.2, 0.]),
+        #     3: np.array([-0.8, 1.2]),
+        #     4: np.array([0., 1.2]),
+        #     5: np.array([1.2, -0.8]),
+        #     6: np.array([-1.2, 0.]),
+        #     7: np.array([-1.2, -0.8]),
+        #     8: np.array([-0.8, -1.2]),
+        #     9: np.array([0., -1.2]),
+        #     10: np.array([1.2, 0.8]),
+        #     11: np.array([-1.2, 0.8])
+        # }
 
         
         agent.state.p_vel = np.array([0, 0])
@@ -384,20 +386,13 @@ class Scenario(BaseScenario):
             2: np.array([.8, 1.2]),
             3: np.array([.8, -1.2]),
         }
-                
-        positions_test = {
-            0: np.array([-.8, 1.2]),
-            1: np.array([-.8, -1.2]),
-            2: np.array([.8, 1.2]),
-            3: np.array([.8, -1.2]),
-        }
         
-        # positions_test = {
-        #     0: positions_train[2],
-        #     1: positions_train[3],
-        #     2: positions_train[0],
-        #     3: positions_train[1]
-        # }
+        positions_test = {
+            0: positions_train[2],
+            1: positions_train[3],
+            2: positions_train[0],
+            3: positions_train[1]
+        }
         
         agent.state.p_vel = np.array([0, 0])
 

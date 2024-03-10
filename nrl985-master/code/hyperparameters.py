@@ -416,7 +416,7 @@ experiments_choice = [
     #     'graph': fully_connected(12),
     #     'connection_slow': False,
     #     'gamma_hop': 0,
-    #     'experiment_name': 'Fully Connected, M = 12, γ = 0',
+    #     'experiment_name': 'Complete Graph, M = 12, γ = 0',
     #     'num_agents': 12
     # },
     
@@ -424,7 +424,7 @@ experiments_choice = [
     #     'graph': fully_connected(12),
     #     'connection_slow': False,
     #     'gamma_hop': 1,
-    #     'experiment_name': 'Fully Connected, M = 12, γ = 1',
+    #     'experiment_name': 'Complete Graph, M = 12, γ = 1',
     #     'num_agents': 12
     # },
     
@@ -432,14 +432,67 @@ experiments_choice = [
     #     'graph': fully_connected(4),
     #     'connection_slow': False,
     #     'gamma_hop': 1,
-    #     'experiment_name': 'Fully Connected, M = 4, γ = 1',
+    #     'experiment_name': 'Complete Graph, M = 4, γ = 1',
     #     'num_agents': 4
     # },
     
+    # {   # Star with Gamma = 1, Center on Agent 1
+    #     'graph': star_graph(12, 1),
+    #     'connection_slow': True,
+    #     'gamma_hop': 1,
+    #     'experiment_name': 'Star, M = 12, γ = 1',
+    #     'num_agents': 12
+        
+    # },
     
-
+    # {   # Star with Gamma = 2, Center on Agent 1
+    #     'graph': star_graph(12, 1),
+    #     'connection_slow': True,
+    #     'gamma_hop': 2,
+    #     'experiment_name': 'Star, M = 12, γ = 2',
+    #     'num_agents': 12
+        
+    # },
     
 # #EXPERIMENT 2 ----------------------------------------------------------
+    
+    {   # Line Graph with Gamma = 3
+        'graph': line_graph(12),
+        'connection_slow': True,
+        'gamma_hop': 3,
+        'experiment_name': 'Line, γ = 3',
+        'num_agents': 12
+        
+    },
+    
+    {   # Line Graph with Gamma = 6
+        'graph': line_graph(12),
+        'connection_slow': True,
+        'gamma_hop': 6,
+        'experiment_name': 'Line, γ = 6',
+        'num_agents': 12
+        
+    },
+    
+    {   # Ring Degree 2 with Gamma = 1
+        'graph': ring_graph(12, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'Lattice, γ = 1, K = 2',
+        'num_agents': 12
+         
+    },
+    
+    {   # Ring Degree 2 with Gamma = 2
+        'graph': ring_graph(12, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'Lattice, γ = 2, K = 2',
+        'num_agents': 12
+        
+    },   
+    
+# # #EXPERIMENT 2.5 ----------------------------------------------------------
     
     # {   # Line Graph with Gamma = 1
     #     'graph': line_graph(12),
@@ -459,65 +512,113 @@ experiments_choice = [
         
     # },
     
-    # {   # Star with Gamma = 1, Center on Agent 1
-    #     'graph': star_graph(12, 1),
+    # {   # Ring Degree 2 with Gamma = 1
+    #     'graph': ring_graph(12, 2),
     #     'connection_slow': True,
     #     'gamma_hop': 1,
-    #     'experiment_name': 'Star, γ = 1, C = 1',
+    #     'experiment_name': 'Lattice, γ = 1, K = 2',
     #     'num_agents': 12
-        
+         
     # },
     
-    
-    # {   # Star with Gamma = 2, Center on Agent 1
-    #     'graph': star_graph(12, 1),
+    # {   # Ring Degree 2 with Gamma = 2
+    #     'graph': ring_graph(12, 2),
     #     'connection_slow': True,
     #     'gamma_hop': 2,
-    #     'experiment_name': 'Star, γ = 2, C = 1',
+    #     'experiment_name': 'Lattice, γ = 2, K = 2',
     #     'num_agents': 12
         
-    # },
+    # },   
 
-# #EXPERIMENT 3 ----------------------------------------------------------
+# # #EXPERIMENT 3 ----------------------------------------------------------
 
     
-# #Watts-Strogatz Deterministic 
+# # #Watts-Strogatz Deterministic 
 
-    { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
-         'graph': watts_strogatz_deterministic(), 
-         'connection_slow': True, 
-         'gamma_hop': 1, 
-         'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5',
-         'num_agents': 12
+#     { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
+#          'graph': watts_strogatz_deterministic(), 
+#          'connection_slow': True, 
+#          'gamma_hop': 1, 
+#          'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5',
+#          'num_agents': 12
          
-    },
+#     },
     
-    { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
-         'graph': watts_strogatz_deterministic(), 
-         'connection_slow': True, 
-         'gamma_hop': 2, 
-         'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5',
-         'num_agents': 12
+#     { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
+#          'graph': watts_strogatz_deterministic(), 
+#          'connection_slow': True, 
+#          'gamma_hop': 2, 
+#          'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5',
+#          'num_agents': 12
          
-    },    
+#     },    
     
-    {   # Ring Degree 4 with Gamma = 1
-        'graph': ring_graph(12, 4),
-        'connection_slow': True,
-        'gamma_hop': 1,
-        'experiment_name': 'Lattice, γ = 1, K = 4',
-        'num_agents': 12
+#     {   # Ring Degree 4 with Gamma = 1
+#         'graph': ring_graph(12, 4),
+#         'connection_slow': True,
+#         'gamma_hop': 1,
+#         'experiment_name': 'Lattice, γ = 1, K = 4',
+#         'num_agents': 12
          
-    },
+#     },
     
-    {   # Ring Degree 4 with Gamma = 2
-        'graph': ring_graph(12, 4),
-        'connection_slow': True,
-        'gamma_hop': 2,
-        'experiment_name': 'Lattice, γ = 2, K = 4',
-        'num_agents': 12
+#     {   # Ring Degree 4 with Gamma = 2
+#         'graph': ring_graph(12, 4),
+#         'connection_slow': True,
+#         'gamma_hop': 2,
+#         'experiment_name': 'Lattice, γ = 2, K = 4',
+#         'num_agents': 12
         
-    },   
+#     },   
+    
+# # #EXPERIMENT 3.5 ----------------------------------------------------------
+
+    
+# # # #Watts-Strogatz Deterministic 
+
+#     { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
+#          'graph': watts_strogatz_deterministic(), 
+#          'connection_slow': True, 
+#          'gamma_hop': 1, 
+#          'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5',
+#          'num_agents': 12
+         
+#     },
+    
+#     { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
+#          'graph': watts_strogatz_deterministic(), 
+#          'connection_slow': True, 
+#          'gamma_hop': 2, 
+#          'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5',
+#          'num_agents': 12
+         
+#     },    
+    
+#     {   # Ring Degree 4 with Gamma = 1
+#         'graph': ring_graph(12, 4),
+#         'connection_slow': True,
+#         'gamma_hop': 1,
+#         'experiment_name': 'Lattice, γ = 1, K = 4',
+#         'num_agents': 12
+         
+#     },
+    
+#     {   # Ring Degree 4 with Gamma = 2
+#         'graph': ring_graph(12, 4),
+#         'connection_slow': True,
+#         'gamma_hop': 2,
+#         'experiment_name': 'Lattice, γ = 2, K = 4',
+#         'num_agents': 12
+        
+#     },   
+    
+#     {   # Fully Connected with Gamma = 1
+#         'graph': fully_connected(12),
+#         'connection_slow': False,
+#         'gamma_hop': 1,
+#         'experiment_name': 'Complete Graph, γ = 1',
+#         'num_agents': 12
+    # },
 
 #EXPERIMENT 4 ----------------------------------------------------------
     

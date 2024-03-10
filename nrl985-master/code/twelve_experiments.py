@@ -17,7 +17,12 @@ import math
 from adjacency import convert_adj_to_power_graph
 from ucb_marl_agent import MARL_Comm
 from observer import Oracle
-
+import multiprocessing
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import pandas as pd
+import seaborn as sns
 
 NUMBER_OF_TRIALS = evaluation_hyperparameters['num_of_trials']
 NUM_EVALUATION_EPISODES = evaluation_hyperparameters['num_evaluation_episodes']
@@ -213,33 +218,91 @@ def create_exp_marl_agents(num_of_agents, num_of_episodes, length_of_episode, ga
 #     return [reward_array_evaluation, reward_array_episode_num]
  
     
+# def twelve_experiments(experiment, choice):
+#     NUM_OF_EPISODES = train_hyperparameters['num_of_episodes']
+#     EVALUATION_INTERVAL = evaluation_hyperparameters['evaluation_interval']
+#     NUM_EVALUATION_EPISODES = evaluation_hyperparameters['num_evaluation_episodes']
+    
+#     # Initialize an array to track average evaluation rewards
+#     reward_list_evaluation = np.zeros(NUM_OF_EPISODES // EVALUATION_INTERVAL)
+#     reward_array_episode_num = np.arange(EVALUATION_INTERVAL, NUM_OF_EPISODES + 1, EVALUATION_INTERVAL)
+    
+#     print(f'TOPOLOGY EXPERIMENTS: Training over {NUM_OF_EPISODES} episodes with trials {NUMBER_OF_TRIALS}')
+#     for trials_num in range(NUMBER_OF_TRIALS):
+#         agent_type, env, agents, train_choice = _set_up(experiment)
+#         for episode_num in range(1, NUM_OF_EPISODES + 1):
+#             # Training phase
+#             # It's assumed your training function updates the agents based on interactions with the environment
+#             train_choice(env, agents, episode_num-1)  # Assuming this function trains the agents
+
+#             # Evaluation phase at specified intervals
+#             if episode_num % EVALUATION_INTERVAL == 0:
+#                 total_evaluation_reward = 0
+#                 for eval_episode in range(NUM_EVALUATION_EPISODES):
+#                     reward = episode_play_normal_marl(env, agents, NUM_OF_CYCLES, len(agents), render=False)
+#                     total_evaluation_reward += reward
+                
+#                 # Update the average evaluation reward for this evaluation point
+#                 average_evaluation_reward = total_evaluation_reward / NUM_EVALUATION_EPISODES
+#                 reward_list_evaluation[(episode_num // EVALUATION_INTERVAL) - 1] += average_evaluation_reward
+
+#             if episode_num % 100 == 0:
+#                 print(f"Trial {trials_num}, Episode {episode_num}")
+
+#     # Average the rewards across all trials
+#     reward_list_evaluation /= NUMBER_OF_TRIALS
+    
+#     print("Average Evaluation Rewards:", reward_list_evaluation)
+#     return reward_list_evaluation, reward_array_episode_num
+
+
+import numpy as np
+
 def twelve_experiments(experiment, choice):
     NUM_OF_EPISODES = train_hyperparameters['num_of_episodes']
     EVALUATION_INTERVAL = evaluation_hyperparameters['evaluation_interval']
     NUM_EVALUATION_EPISODES = evaluation_hyperparameters['num_evaluation_episodes']
     
-    # Initialize an array to track average evaluation rewards
+    # Initialize arrays to track evaluation rewards
     reward_list_evaluation = np.zeros(NUM_OF_EPISODES // EVALUATION_INTERVAL)
     reward_array_episode_num = np.arange(EVALUATION_INTERVAL, NUM_OF_EPISODES + 1, EVALUATION_INTERVAL)
+    
+    min_rewards = np.full(NUM_OF_EPISODES // EVALUATION_INTERVAL, np.inf)  # Initialize with infinities for minimums
+    max_rewards = np.full(NUM_OF_EPISODES // EVALUATION_INTERVAL, -np.inf)  # Initialize with -infinities for maximums
+    
+    percentile_25_rewards = np.full(NUM_OF_EPISODES // EVALUATION_INTERVAL, np.inf)
+    percentile_75_rewards = np.full(NUM_OF_EPISODES // EVALUATION_INTERVAL, -np.inf)
+    
     
     print(f'TOPOLOGY EXPERIMENTS: Training over {NUM_OF_EPISODES} episodes with trials {NUMBER_OF_TRIALS}')
     for trials_num in range(NUMBER_OF_TRIALS):
         agent_type, env, agents, train_choice = _set_up(experiment)
         for episode_num in range(1, NUM_OF_EPISODES + 1):
             # Training phase
-            # It's assumed your training function updates the agents based on interactions with the environment
-            train_choice(env, agents, episode_num-1)  # Assuming this function trains the agents
+            train_choice(env, agents, episode_num - 1)  # Assuming this function trains the agents
 
             # Evaluation phase at specified intervals
             if episode_num % EVALUATION_INTERVAL == 0:
-                total_evaluation_reward = 0
+                episode_rewards = []  # List to collect rewards for this evaluation
+                
                 for eval_episode in range(NUM_EVALUATION_EPISODES):
                     reward = episode_play_normal_marl(env, agents, NUM_OF_CYCLES, len(agents), render=False)
-                    total_evaluation_reward += reward
+                    episode_rewards.append(reward)  # Assuming total reward per episode
                 
-                # Update the average evaluation reward for this evaluation point
-                average_evaluation_reward = total_evaluation_reward / NUM_EVALUATION_EPISODES
+                # Calculate and update average, min, and max rewards for this evaluation point
+                average_evaluation_reward = np.mean(episode_rewards)
                 reward_list_evaluation[(episode_num // EVALUATION_INTERVAL) - 1] += average_evaluation_reward
+                min_rewards[(episode_num // EVALUATION_INTERVAL) - 1] = min(min(episode_rewards), min_rewards[(episode_num // EVALUATION_INTERVAL) - 1])
+                max_rewards[(episode_num // EVALUATION_INTERVAL) - 1] = max(max(episode_rewards), max_rewards[(episode_num // EVALUATION_INTERVAL) - 1])
+                # After calculating and updating average, min, and max rewards, calculate percentiles
+                percentile_25 = np.percentile(episode_rewards, 25)
+                percentile_75 = np.percentile(episode_rewards, 75)
+                
+                # Update the percentile arrays
+                index = (episode_num // EVALUATION_INTERVAL) - 1  # Calculate the index for the current evaluation interval
+                percentile_25_rewards[index] = percentile_25
+                percentile_75_rewards[index] = percentile_75
+
 
             if episode_num % 100 == 0:
                 print(f"Trial {trials_num}, Episode {episode_num}")
@@ -248,46 +311,12 @@ def twelve_experiments(experiment, choice):
     reward_list_evaluation /= NUMBER_OF_TRIALS
     
     print("Average Evaluation Rewards:", reward_list_evaluation)
-    return reward_list_evaluation, reward_array_episode_num
+    # return reward_list_evaluation, min_rewards, max_rewards, reward_array_episode_num, experiment
+    return reward_list_evaluation, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, reward_array_episode_num, experiment
 
 
 
 
-def _policy(agent_name, agents, observation, done, time_step, episode_num=0):
-
-    """
-    Chooses the action for the agent
-
-    agent_name - The agent names
-    
-    agents - The dictionary of agents
-
-    observations - What the agent can see
-
-    done - Whether the agent is finished
-
-    time_step - The timestep on
-
-    episode_num=0 - The episode number.  Not used
-
-    returns - The action for the agent to run"""
-    
-    NUM_OF_AGENTS = len(agents)
-
-    if time_step > NUM_OF_CYCLES:
-        return None
-    if done:
-        return None
-    agent = agents[agent_name]
-    #print(f'observation: {observation}')
-    return agent.policy(encode_state(observation, NUM_OF_AGENTS), time_step)
-
-import multiprocessing
-import numpy as np
-import matplotlib.pyplot as plt
-import random
-import pandas as pd
-import seaborn as sns
 
 def run_experiment(experiment, choice, index, experiment_rewards):
     try:
@@ -322,41 +351,6 @@ def experiment_pipeline(experiments, choice):
             continue  # or handle the missing data appropriately
 
 
-    # Define line styles and colors for different experiments
-    # line_styles = ['-', '-', '--', '--', '-.', '-.']
-    # colors = ['blue', 'green', 'red', 'orange', 'brown', 'purple']
-    # # Plot the results
-    # fig, ax = plt.subplots()
-    # ax.set_xlabel('Episode Number')
-    # ax.set_ylabel('Globally Averaged Reward')
-    # ax.grid(True)
-
-        
-    # for i, experiment in enumerate(experiments):
-        # rewards_array, episode_nums = experiment_rewards[i]
-        
-        # # Calculate average rewards
-        # average_rewards_shaded = np.mean(rewards_array, axis=1)
-
-        # # Smooth the average rewards
-        # average_rewards = pd.Series(average_rewards_shaded).rolling(500, min_periods=1).mean()
-        
-        # line_style = line_styles[i % len(line_styles)]
-        # color = colors[i % len(colors)]
-        # label = experiment['experiment_name']
-
-        # ax.plot(episode_nums, average_rewards, line_style, label=label, color=color)
-        # ax.fill_between(episode_nums, rewards_array.min(axis=1), rewards_array.max(axis=1), alpha=0.2, color=color) 
-
-    # ax.legend()
-    # plt.tight_layout()  
-
-    # random_number = random.randint(0, 999999999)
-    # filename = f'saved_data/figs/test_time_rewards_{random_number}.png'
-    # print(f"Figure saved as {filename}")
-    # plt.savefig(filename)
-    
-
     # Plot the results
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel('Episode Number')
@@ -364,17 +358,85 @@ def experiment_pipeline(experiments, choice):
     ax.grid(True)
 
     # Define line styles and colors for visual distinction between experiments
-    line_styles = ['-', '--', '-.', ':']
+    # line_styles = ['-', '-', '--', '-.', '-.'] # Experiment 1
+    line_styles = ['-', '-', '--', '--'] # Experiment 2, 2.5, 3
+    # line_styles = ['-', '-', '--', '--', '-.'] # Experiment 3.5
+    
     colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown']
+    
+    
+    
+    # Min max chart
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+    
+    # for i, (average_rewards, min_rewards, max_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+        average_rewards = np.array(average_rewards)
+        min_rewards = np.array(min_rewards)
+        max_rewards = np.array(max_rewards)
+
+        rolling_avg_rewards = pd.Series(average_rewards).rolling(window=2500, min_periods=1).mean()
+
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']  # Extract name from the experiment dict
+        
+
+        ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
+        ax.fill_between(episode_nums, min_rewards, max_rewards, color=color, alpha=.2)
+
+
+
+    ax.legend()
+    plt.tight_layout()
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/figs/test_time_rewards_MINMAX{random_number}.png'
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()
+
+    fig, ax = plt.subplots(figsize=(10, 6))  # Create a new figure and axes
+    ax.set_xlabel('Episode Number')
+    ax.set_ylabel('Globally Averaged Reward')
+    ax.grid(True)
+    
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+        average_rewards = np.array(average_rewards)
+        quad1_rewards = np.array(percentile_25_rewards)
+        quad2_rewards = np.array(percentile_75_rewards)
+
+        rolling_avg_rewards = pd.Series(average_rewards).rolling(window=2500, min_periods=1).mean()
+
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']  # Extract name from the experiment dict
+        
+
+        ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
+        ax.fill_between(episode_nums, quad1_rewards, quad2_rewards, color=color, alpha=.2)
+
+
+    ax.legend()
+    plt.tight_layout()
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/figs/test_time_rewards_PERCENTILE{random_number}.png'
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()
+
+    fig, ax = plt.subplots(figsize=(10, 6))  # Create a new figure and axes
+    ax.set_xlabel('Episode Number')
+    ax.set_ylabel('Globally Averaged Reward')
+    ax.grid(True)
+
 
     # Iterate over both experiment_rewards and experiments to get rewards and names
-    for i, ((rewards, episode_nums), experiment) in enumerate(zip(experiment_rewards, experiments)):
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
         # Ensure rewards is a numpy array for consistency in plotting operations
-        rewards = np.array(rewards)
+        rewards = np.array(average_rewards)
 
         # Calculate the rolling average for a smooth line
-        rolling_avg_rewards = pd.Series(rewards).rolling(window=5000, min_periods=1).mean()
-        rolling_std_dev = pd.Series(rewards).rolling(window=5000, min_periods=1).std() #new
+        rolling_avg_rewards = pd.Series(rewards).rolling(window=2500, min_periods=1).mean()
+        rolling_std_dev = pd.Series(rewards).rolling(window=2500, min_periods=1).std() #new
 
         # Setup for plot aesthetics
         line_style = line_styles[i % len(line_styles)]
@@ -384,18 +446,125 @@ def experiment_pipeline(experiments, choice):
         # Plot the rolling average line
         ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
         
-        ax.fill_between(episode_nums, rolling_avg_rewards - rolling_std_dev, rolling_avg_rewards + rolling_std_dev, color=color, alpha=0.2) #new
+        ax.fill_between(episode_nums, rolling_avg_rewards - rolling_std_dev, rolling_avg_rewards + rolling_std_dev, color=color, alpha=.2) #new
 
-        # # Create a shaded region around the rolling average
-        # ax.fill_between(episode_nums, rolling_avg_rewards, rewards, color=color, alpha=0.2)
-        # ax.fill_between(episode_nums, rewards, rolling_avg_rewards, color=color, alpha=0.2)
 
     ax.legend()
     plt.tight_layout()
     random_number = random.randint(0, 999999999)
-    filename = f'saved_data/figs/test_time_rewards_{random_number}.png'
+    filename = f'saved_data/figs/test_time_rewards_STDEV{random_number}.png'
     print(f"Figure saved as {filename}")
     plt.savefig(filename)
+    plt.clf()
+    
+    
+ 
+
+    # Plot the results
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_xlabel('Episode Number')
+    ax.set_ylabel('Globally Averaged Reward')
+    ax.grid(True)
+
+    # Define line styles and colors for visual distinction between experiments
+    # line_styles = ['-', '-', '--', '-.', '-.'] # Experiment 1
+    line_styles = ['-', '-', '--', '--'] # Experiment 2, 2.5, 3
+    # line_styles = ['-', '-', '--', '--', '-.'] # Experiment 3.5
+    
+    colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown']
+    
+    
+    # Min max chart
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+    
+    # for i, (average_rewards, min_rewards, max_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+        average_rewards = np.array(average_rewards)
+        min_rewards = np.array(min_rewards)
+        max_rewards = np.array(max_rewards)
+
+        rolling_avg_rewards = pd.Series(average_rewards).rolling(window=2500, min_periods=1).mean()
+
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']  # Extract name from the experiment dict
+        
+
+        ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
+        ax.fill_between(episode_nums, min_rewards, max_rewards, color=color, alpha=.7)
+
+
+
+    ax.legend()
+    plt.tight_layout()
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/figs/test_time_rewards_MINMAXDARK{random_number}.png'
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()
+
+    fig, ax = plt.subplots(figsize=(10, 6))  # Create a new figure and axes
+    ax.set_xlabel('Episode Number')
+    ax.set_ylabel('Globally Averaged Reward')
+    ax.grid(True)
+    
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+        average_rewards = np.array(average_rewards)
+        quad1_rewards = np.array(percentile_25_rewards)
+        quad2_rewards = np.array(percentile_75_rewards)
+
+        rolling_avg_rewards = pd.Series(average_rewards).rolling(window=2500, min_periods=1).mean()
+
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']  # Extract name from the experiment dict
+        
+
+        ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
+        ax.fill_between(episode_nums, quad1_rewards, quad2_rewards, color=color, alpha=.7)
+
+
+    ax.legend()
+    plt.tight_layout()
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/figs/test_time_rewards_PERCENTILEDARK{random_number}.png'
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()
+
+    fig, ax = plt.subplots(figsize=(10, 6))  # Create a new figure and axes
+    ax.set_xlabel('Episode Number')
+    ax.set_ylabel('Globally Averaged Reward')
+    ax.grid(True)
+
+
+    # Iterate over both experiment_rewards and experiments to get rewards and names
+    for i, (average_rewards, min_rewards, max_rewards, percentile_25_rewards, percentile_75_rewards, episode_nums, experiment) in enumerate(experiment_rewards):
+        # Ensure rewards is a numpy array for consistency in plotting operations
+        rewards = np.array(average_rewards)
+
+        # Calculate the rolling average for a smooth line
+        rolling_avg_rewards = pd.Series(rewards).rolling(window=2500, min_periods=1).mean()
+        rolling_std_dev = pd.Series(rewards).rolling(window=2500, min_periods=1).std() #new
+
+        # Setup for plot aesthetics
+        line_style = line_styles[i % len(line_styles)]
+        color = colors[i % len(colors)]
+        label = experiment['experiment_name']  # Extract name from the experiment dict
+
+        # Plot the rolling average line
+        ax.plot(episode_nums, rolling_avg_rewards, line_style, label=label, color=color, lw=2)
+        
+        ax.fill_between(episode_nums, rolling_avg_rewards - rolling_std_dev, rolling_avg_rewards + rolling_std_dev, color=color, alpha=.7) #new
+
+
+    ax.legend()
+    plt.tight_layout()
+    random_number = random.randint(0, 999999999)
+    filename = f'saved_data/figs/test_time_rewards_STDEVDARK{random_number}.png'
+    print(f"Figure saved as {filename}")
+    plt.savefig(filename)
+    plt.clf()
+    
 
 
 
@@ -421,3 +590,33 @@ def plot_graph(adj, num_of_agents, fig_name):
     
     plt.savefig(filename)
     plt.clf()  # Clear the current figure after saving it
+    
+def _policy(agent_name, agents, observation, done, time_step, episode_num=0):
+
+    """
+    Chooses the action for the agent
+
+    agent_name - The agent names
+    
+    agents - The dictionary of agents
+
+    observations - What the agent can see
+
+    done - Whether the agent is finished
+
+    time_step - The timestep on
+
+    episode_num=0 - The episode number.  Not used
+
+    returns - The action for the agent to run"""
+    
+    NUM_OF_AGENTS = len(agents)
+
+    if time_step > NUM_OF_CYCLES:
+        return None
+    if done:
+        return None
+    agent = agents[agent_name]
+    #print(f'observation: {observation}')
+    return agent.policy(encode_state(observation, NUM_OF_AGENTS), time_step)
+
