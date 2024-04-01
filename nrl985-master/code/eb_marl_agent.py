@@ -1,16 +1,10 @@
 from collections import defaultdict
 import math
 import random
-from copy import deepcopy
 from agent import Agent
 from hyperparameters import eb_marl_hyperparameters, agent_hyperparameters
-from multiprocessing import Pool
-import os
 
-
-#Import sleep module
-from time import sleep
-
+## THIS FILE CONTAINS THE PB Exploration Algorithm applied to Multi Agent Q Learning, as described in algorithm 2 of the thesis.  
 
 class EB_MARL_Comm(Agent):
 
@@ -18,7 +12,7 @@ class EB_MARL_Comm(Agent):
     def __init__(self, agent_name, num_of_agents, num_of_episodes, length_of_episode, gamma_hop):
         self.exploration_bonuses_detailed = {}  # New attribute for detailed tracking
         self.real_state_map = {}  # Map to store the real state for each hash
-        self.exploration_bonuses = []
+        self.exploration_bonuses = [] # Stores exploration bonuses for visualization. 
 
 
         # The set of H number of Q-Tables.
@@ -52,7 +46,7 @@ class EB_MARL_Comm(Agent):
         # This corresponds to T (H*K)
         T = num_of_episodes*length_of_episode
         
-        #EB hyperparameters 
+        #pb hyperparameters 
         self.initial_decay_factor = eb_marl_hyperparameters['initial_decay_factor']
         self.decay_rate = eb_marl_hyperparameters['decay_rate']
         self.scaling_factor = eb_marl_hyperparameters['scaling_factor']
@@ -62,29 +56,6 @@ class EB_MARL_Comm(Agent):
         # The v-table values.  Set to H as this corresponds to the q tables currently.
         self.vTable = {j+1: defaultdict(lambda: self.H) for j in range(length_of_episode+1)}
         
-    # def create_universal_nTable(agents, last_episode, last_timestep):
-    #     # Initialize the universal nTable
-    #     universal_nTable = defaultdict(lambda: defaultdict(int))
-
-    #     # Aggregate data from the last timestep of the last episode for all agents
-    #     for agent in agents.values():
-    #         # Access the nTable for the last timestep of the last episode
-    #         nTable_last = agent.nTables[last_timestep]
-
-    #         for state, action_counts in nTable_last.items():
-    #             for action, count in action_counts.items():
-    #                 universal_nTable[state][action] += count
-
-    #     return universal_nTable
-        
-        
-    # def get_exploration_bonuses_for_episode(self, episode_num, timesteps):
-    #     bonuses = []
-    #     if episode_num in self.exploration_bonuses_detailed:
-    #         for timestep in timesteps:
-    #             if timestep in self.exploration_bonuses_detailed[episode_num]:
-    #                 bonuses.append(self.exploration_bonuses_detailed[episode_num][timestep])
-    #     return bonuses    
 
     
     def exponential_decay(self, t):
@@ -212,11 +183,6 @@ class EB_MARL_Comm(Agent):
             if self._neighbours[agent] != 0:
                 agent_obj = agents_dict[agent]
 
-                # # Retrieve the real states corresponding to the hashed states
-                # old_real_state = self.real_state_map.get(old_state, [0] * len(old_state))
-                # current_real_state = self.real_state_map.get(current_state, [0] * len(current_state))
-
-                # Updated send_message call with real states included
                 self.send_message(episode_num, time_step, old_state, old_real_state, action, current_state, current_real_state, reward, agent_obj, self._neighbours[agent])
 
     def update(self, episode_num, time_step, old_state, current_state, action, reward):
@@ -300,52 +266,63 @@ class EB_MARL_Comm(Agent):
         agent_obj.receive_message(message_tuple, distance)
 
 
+# ## HERE IS THE PB EXPLORATION ALGO!!!!
+
     def update_values(self, episode_num_max, time_step_max):
-        """
-        This updates the q_table and the vTable
-
-        episode_num_max - The episode the agent is on
-
-        time_step_max - The time step the agent is on. Not currently needed
         
-        """
-        #1 over the size of state space
-        # s = 1/agent_hyperparameters['size_of_state_space']
-        # s = 1/1000
-        # s = 1/100
-        # s = 1/10
-        
+        # Initialize a default state value vector based on the size of the state space.
         default_value = [0 for i in range(agent_hyperparameters['size_of_state_space'])]
+        
+        # Iterate over episodes from the second-to-last to the last.
         for episode_num in range(episode_num_max-1, episode_num_max+1):
+            # Iterate through each time step within the given horizon.
             for time_step in range(1, self.H+1):
+                # Iterate over all state hashes encountered at this episode and time step.
                 for state_hash in self.vSet[episode_num][time_step].keys():
+                    # Iterate over all actions taken from those states.
                     for action in self.vSet[episode_num][time_step][state_hash].keys():
+                        # Iterate over all rewards and subsequent states resulting from those actions.
                         for reward, next_state_hash in self.vSet[episode_num][time_step][state_hash][action]:
+                            # Increment the counter for how many times a given state-action pair has been visited.
                             self.nTables[time_step][state_hash][action] += 1
+                            
+                            # Retrieve the updated visitation count for the current state-action pair.
                             t = self.nTables[time_step][state_hash][action]
                             
-
+                            # Calculate the current decay factor based on the time step.
                             current_decay_factor = self.exponential_decay(time_step)
+                            # Initialize the bonus for exploration to zero.
                             b = 0
                             
+                            # Retrieve the real state vector for the current state hash, defaulting if not found.
                             real_state = self.real_state_map.get(state_hash, default_value)
+                            # Iterate over all other state hashes at the current time step.
                             for other_state_hash in self.nTables[time_step].keys():
+                                # Retrieve the real state vector for the other state hash.
                                 other_real_state = self.real_state_map.get(other_state_hash, default_value)
+                                # Calculate the Euclidean distance between the current and other state.
                                 distance = math.sqrt(sum([(s - o)**2 for s, o in zip(real_state, other_real_state)]))
-                                # print("Distance between", real_state, "and", other_real_state, "is", distance)
+                                # For each action available from the other state, accumulate the bonus.
                                 for other_action in self.nTables[time_step][other_state_hash].keys():
                                     b += self.scaling_factor * self.nTables[time_step][other_state_hash][other_action] * distance
-                                    # b += s * self.nTables[time_step][other_state_hash][other_action] * distance
+                            # Adjust the bonus based on the decay factor and a logarithmic term.
                             b *= current_decay_factor * self.log_term
                             
+                            # Record the calculated bonus.
                             self.exploration_bonuses.append(b)
 
-
+                            # Calculate the learning rate alpha, dependent on the visitation count.
                             alpha = (self.H + 1) / (self.H + t)
+                            # Calculate the weighted current Q-value estimate.
                             initial = (1 - alpha) * self.qTables[time_step][state_hash][action]
+                            # Calculate the updated Q-value incorporating the reward, estimated future value, and bonus.
                             expected_future = alpha * (reward + self.vTable[time_step + 1][next_state_hash] + b)
+                            # Combine the current and future estimates to form the new Q-value.
                             new_score = initial + expected_future
+                            # Update the Q-table with the new Q-value for the current state-action pair.
                             self.qTables[time_step][state_hash][action] = new_score
+                            # Update the value table for the current state based on the smallest Q-value across all actions.
                             self.vTable[time_step][state_hash] = self.choose_smallest_value(state_hash, time_step)
 
+                # Reset the visited state-action pairs for the next episode and time step to ensure fresh calculations.
                 self.vSet[episode_num][time_step] = defaultdict(lambda: defaultdict(lambda: set()))

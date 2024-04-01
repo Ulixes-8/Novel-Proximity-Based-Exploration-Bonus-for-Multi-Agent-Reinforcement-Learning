@@ -1,4 +1,9 @@
 from enum import Enum
+import random
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 class AgentType(Enum):
 
@@ -9,6 +14,8 @@ class AgentType(Enum):
     ORIGINAL = 'ORIGINAL'
     EB_Lidard = 'EB_Lidard'
 
+
+##Network topolgies. Feel free to define your own, but it should look like the below (return an adjacency table)
 def line_graph(num_of_agents):
 
     """
@@ -32,8 +39,8 @@ def line_graph(num_of_agents):
 
     return adj
 
-def ring_graph(num_of_agents, k):
 
+def ring_graph(num_of_agents, k):
     """
     Creates a ring graph adjacency table
     num_of_agents - The number of agents
@@ -44,33 +51,22 @@ def ring_graph(num_of_agents, k):
     """
     k = k // 2  # So k is the number of connections to each side
     
-    adj = []
+    adj = [[0 for _ in range(num_of_agents)] for _ in range(num_of_agents)]
 
     for i in range(num_of_agents):
-        neighbours = []
-        for j in range(num_of_agents):
-            found = False
-            for neighbour in range(1, k+1):
-                if j == (i-neighbour)%num_of_agents or j == (i+neighbour)%num_of_agents:
-                    neighbours.append(1)
-                    found =True
-                    break
-                    
-            if not found:
-                neighbours.append(0)
-        adj.append(neighbours)
+        for neighbour in range(1, k+1):
+            right = (i + neighbour) % num_of_agents
+            left = (i - neighbour) % num_of_agents
+            adj[i][right] = 1
+            adj[i][left] = 1
 
     return adj
 
 
-import random
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import os
 
 
-def watts_strogatz_deterministic():
+
+def watts_strogatz_deterministic(): # This is a WS network we found with brute force that exhibits the small world property when we do fully random swapping scheme. 
 
     adj = [[0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0], 
        [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0], 
@@ -240,6 +236,7 @@ def fully_connected(num_of_agents):
 
 # GRAPH
 # Adjacency graph & connection slow & gamma hop
+#Legacy code. You do not need to use it if you're using the experiment pipeline, which is far more optimized, functional, and easier to use. 
 multiple_graph_parameters = [
     {   # Fully Connected
         'graph': fully_connected(4),
@@ -277,6 +274,8 @@ multiple_graph_parameters = [
 # What agent to use
 # Number of agents
 # Size of state space
+
+#If you are using the experiment pipeline, you do not need to use this. This is legacy code. 
 agent_multiple_parameters = [
     {
         'agent_choice': AgentType.RANDOM,
@@ -306,8 +305,7 @@ agent_multiple_parameters = [
     {
         'agent_choice': AgentType.ORIGINAL,
         'num_of_agents': 12,
-        # 'size_of_state_space': 40**4
-        'size_of_state_space': 10**4
+        'size_of_state_space': 40**4
     },
         {
         'agent_choice': AgentType.EB_Lidard,
@@ -318,10 +316,11 @@ agent_multiple_parameters = [
         'agent_choice': AgentType.EB_Lidard,
         'num_of_agents': 12,
         'size_of_state_space': 40**4
+        
     },
 ]
 
-# IQL
+# IQL hyperparamters. Legacy code. 
 # Gamma, alpha, Greedy
 iql_multiple_parameters = [
     {
@@ -331,22 +330,23 @@ iql_multiple_parameters = [
     }
 ]
 
-# UCB
+# UCB hyperparameters 
 # c value
 # prob value
 ucb_marl_multiple_parameters = [
     {
-        'c': 0.02,
+        'c': 0.02, # these have been shown to be the optimal hyperparameters over 1000 episodes for 4 agents in all topologies... 
         'probability': 0.1,
     }
 ]
 
+#The hyperparamters of the PB algorithm. Tune them wisely. 
 eb_marl_multiple_parameters = [
     {
-        'initial_decay_factor': 1, #.1 #10 #100
-        'decay_rate': 0.5,
-        'scaling_factor': 0.0001, 
-        'probability': .1,
+        'initial_decay_factor': 1, #Keep this at 1. It is identical to the scaling factor. 
+        'decay_rate': 0.25, # generally should be lower the faster communication is, unless it is not full. 
+        'scaling_factor': .0001, # generally should be lower the more agents you have. 
+        'probability': .1, #Keep at .1.
     }
 ]
 
@@ -356,7 +356,7 @@ eb_marl_multiple_parameters = [
 # EVALUATION_INTERVALS
 evaluation_multiple_parameters = [
     {
-        'num_of_trials': 1,
+        'num_of_trials': 2, # How many trials do you want? i recommend not touching the others. 
         'num_evaluation_episodes': 8, 
         'evaluation_interval': 1,
     }
@@ -364,9 +364,10 @@ evaluation_multiple_parameters = [
 
 # REWARD
 # Reward 'function' to use
+# Keep it on mean reward unless you know what you're doing. 
 reward_multiple_parameters = [
     {
-        'reward': 'mean',
+        'reward': 'mean', #Stick with this. The rest is legacy code. 
     },
     {
         'reward': 'split'
@@ -386,7 +387,7 @@ reward_multiple_parameters = [
 # LOCAL_RATIO = 0
 train_multiple_parameters = [
     {
-        'num_of_episodes': 50000,
+        'num_of_episodes': 100, # Just change the number of episodes. Everything else is fine.
         'num_of_cycles': 10,
         'local_ratio': 0,
 
@@ -400,7 +401,7 @@ switch_multiple_parameters = [
     }
 ]
 
-# Whether the graph should be a dynamic graph (so depending on distance and not on an adj table)
+# Whether the graph should be a dynamic graph (so depending on distance and not on an adj table). Legacy code.
 dynamic_parameters = [
     {
         'dynamic': False
@@ -408,282 +409,412 @@ dynamic_parameters = [
 ]
 
 
-experiments_choice = [
 
-#EXPERIMENT 1 ----------------------------------------------------------
 
-    # {   # Fully Connected with Gamma = 0
-    #     'graph': fully_connected(12),
-    #     'connection_slow': False,
-    #     'gamma_hop': 0,
-    #     'experiment_name': 'Complete Graph, M = 12, γ = 0',
-    #     'num_agents': 12
-    # },
-    
-    # {   # Fully Connected with Gamma = 1
-    #     'graph': fully_connected(12),
-    #     'connection_slow': False,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Complete Graph, M = 12, γ = 1',
-    #     'num_agents': 12
-    # },
-    
-    # {   # Fully Connected with Gamma = 1
-    #     'graph': fully_connected(4),
-    #     'connection_slow': False,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Complete Graph, M = 4, γ = 1',
-    #     'num_agents': 4
-    # },
-    
-    # {   # Star with Gamma = 1, Center on Agent 1
-    #     'graph': star_graph(12, 1),
-    #     'connection_slow': True,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Star, M = 12, γ = 1',
-    #     'num_agents': 12
-        
-    # },
-    
-    # {   # Star with Gamma = 2, Center on Agent 1
-    #     'graph': star_graph(12, 1),
-    #     'connection_slow': True,
-    #     'gamma_hop': 2,
-    #     'experiment_name': 'Star, M = 12, γ = 2',
-    #     'num_agents': 12
-        
-    # },
-    
-# #EXPERIMENT 2 ----------------------------------------------------------
-    
-    {   # Line Graph with Gamma = 3
-        'graph': line_graph(12),
-        'connection_slow': True,
-        'gamma_hop': 3,
-        'experiment_name': 'Line, γ = 3',
-        'num_agents': 12
-        
-    },
-    
-    {   # Line Graph with Gamma = 6
-        'graph': line_graph(12),
-        'connection_slow': True,
-        'gamma_hop': 6,
-        'experiment_name': 'Line, γ = 6',
-        'num_agents': 12
-        
-    },
-    
-    {   # Ring Degree 2 with Gamma = 1
-        'graph': ring_graph(12, 2),
-        'connection_slow': True,
-        'gamma_hop': 1,
-        'experiment_name': 'Lattice, γ = 1, K = 2',
-        'num_agents': 12
-         
-    },
-    
-    {   # Ring Degree 2 with Gamma = 2
-        'graph': ring_graph(12, 2),
+
+
+
+
+
+
+
+
+
+
+#### Define experiments in exactly this format (a list of dictionaries where each dictionary corresponds to a sub-experiment within the larger experiment.) 
+### Do not include more the 4 or the final performance graph will look hideous.
+### You can mix the number of agents in experiments, but please make sure that they first occupy the same state space and that their average euclidean distance from the goal state is about the same. Otherwise, you will get ugly charts. 
+### If the agents occupy a different state space or do not have roughly the same euclidean distance from the goal state, then it is better just to put them in different experiments. 
+
+experiment_1 = [
+    {   
+        'graph': star_graph(4, 2),
         'connection_slow': True,
         'gamma_hop': 2,
-        'experiment_name': 'Lattice, γ = 2, K = 2',
-        'num_agents': 12
-        
-    },   
-    
-# # #EXPERIMENT 2.5 ----------------------------------------------------------
-    
-    # {   # Line Graph with Gamma = 1
-    #     'graph': line_graph(12),
-    #     'connection_slow': True,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Line, γ = 1',
-    #     'num_agents': 12
-        
-    # },
-    
-    # {   # Line Graph with Gamma = 6
-    #     'graph': line_graph(12),
-    #     'connection_slow': True,
-    #     'gamma_hop': 6,
-    #     'experiment_name': 'Line, γ = 6',
-    #     'num_agents': 12
-        
-    # },
-    
-    # {   # Ring Degree 2 with Gamma = 1
-    #     'graph': ring_graph(12, 2),
-    #     'connection_slow': True,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Lattice, γ = 1, K = 2',
-    #     'num_agents': 12
-         
-    # },
-    
-    # {   # Ring Degree 2 with Gamma = 2
-    #     'graph': ring_graph(12, 2),
-    #     'connection_slow': True,
-    #     'gamma_hop': 2,
-    #     'experiment_name': 'Lattice, γ = 2, K = 2',
-    #     'num_agents': 12
-        
-    # },   
+        'experiment_name': 'PEB - Star, M = 4, γ = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+    {   
+        'graph': star_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Star, M = 4, γ = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
 
-# # #EXPERIMENT 3 ----------------------------------------------------------
+experiment_2 = [
 
-    
-# # #Watts-Strogatz Deterministic 
+    {   
+        'graph': star_graph(8, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'PEB - Star, M = 8, γ = 2',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
+    {   
+        'graph': star_graph(8, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Star, M = 8, γ = 2',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
 
-#     { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
-#          'graph': watts_strogatz_deterministic(), 
-#          'connection_slow': True, 
-#          'gamma_hop': 1, 
-#          'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5',
-#          'num_agents': 12
-         
-#     },
-    
-#     { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
-#          'graph': watts_strogatz_deterministic(), 
-#          'connection_slow': True, 
-#          'gamma_hop': 2, 
-#          'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5',
-#          'num_agents': 12
-         
-#     },    
-    
-#     {   # Ring Degree 4 with Gamma = 1
-#         'graph': ring_graph(12, 4),
-#         'connection_slow': True,
-#         'gamma_hop': 1,
-#         'experiment_name': 'Lattice, γ = 1, K = 4',
-#         'num_agents': 12
-         
-#     },
-    
-#     {   # Ring Degree 4 with Gamma = 2
-#         'graph': ring_graph(12, 4),
-#         'connection_slow': True,
-#         'gamma_hop': 2,
-#         'experiment_name': 'Lattice, γ = 2, K = 4',
-#         'num_agents': 12
-        
-#     },   
-    
-# # #EXPERIMENT 3.5 ----------------------------------------------------------
+experiment_3 = [
+    {   
+        'graph': star_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Star, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
 
+    {   
+        'graph': star_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Star, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
     
-# # # #Watts-Strogatz Deterministic 
+]
 
-#     { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
-#          'graph': watts_strogatz_deterministic(), 
-#          'connection_slow': True, 
-#          'gamma_hop': 1, 
-#          'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5',
-#          'num_agents': 12
-         
-#     },
-    
-#     { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
-#          'graph': watts_strogatz_deterministic(), 
-#          'connection_slow': True, 
-#          'gamma_hop': 2, 
-#          'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5',
-#          'num_agents': 12
-         
-#     },    
-    
-#     {   # Ring Degree 4 with Gamma = 1
-#         'graph': ring_graph(12, 4),
-#         'connection_slow': True,
-#         'gamma_hop': 1,
-#         'experiment_name': 'Lattice, γ = 1, K = 4',
-#         'num_agents': 12
-         
-#     },
-    
-#     {   # Ring Degree 4 with Gamma = 2
-#         'graph': ring_graph(12, 4),
-#         'connection_slow': True,
-#         'gamma_hop': 2,
-#         'experiment_name': 'Lattice, γ = 2, K = 4',
-#         'num_agents': 12
-        
-#     },   
-    
-#     {   # Fully Connected with Gamma = 1
-#         'graph': fully_connected(12),
-#         'connection_slow': False,
-#         'gamma_hop': 1,
-#         'experiment_name': 'Complete Graph, γ = 1',
-#         'num_agents': 12
-    # },
+experiment_4 = [
 
-#EXPERIMENT 4 ----------------------------------------------------------
-    
+    {   
+        'graph': star_graph(8, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Star, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
 
-#Watts-Strogatz Probabilistic 
+    {   
+        'graph': star_graph(8, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Star, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
 
 
-    # { #Watts-Strogatz with Gamma = 1, K = 4, P = 0.5
-    #     'graph': watts_strogatz(12, 4, 0.5), 
-    #     'connection_slow': True, 
-    #     'gamma_hop': 1, 
-    #     'experiment_name': 'Watts-Strogatz, γ = 1, K = 4, P = 0.5'
-    # },
-    
-    # { #Watts-Strogatz with Gamma = 2, K = 4, P = 0.5
-    #     'graph': watts_strogatz(12, 4, 0.5), 
-    #     'connection_slow': True, 
-    #     'gamma_hop': 2, 
-    #     'experiment_name': 'Watts-Strogatz, γ = 2, K = 4, P = 0.5'
-    # },    
-    
-    # {   # Ring Degree 4 with Gamma = 1
-    #     'graph': ring_graph(12, 4),
-    #     'connection_slow': True,
-    #     'gamma_hop': 1,
-    #     'experiment_name': 'Ring, γ = 1, K = 4'
-    # },
-    
-    # {   # Ring Degree 4 with Gamma = 2
-    #     'graph': ring_graph(12, 4),
-    #     'connection_slow': True,
-    #     'gamma_hop': 2,
-    #     'experiment_name': 'Ring, γ = 2, K = 4'
-    # },   
-    
+
+experiment_5 = [
+    {   
+        'graph': fully_connected(4),
+        'connection_slow': False,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Complete Graph, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {  
+        'graph': fully_connected(4),
+        'connection_slow': False,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Complete Graph, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
 
 ]
 
-graph_hyperparameters = multiple_graph_parameters[0] #Fully connected
-# graph_hyperparameters = multiple_graph_parameters[1] #Line
-# graph_hyperparameters = multiple_graph_parameters[4] #  Star
-# graph_hyperparameters = multiple_graph_parameters[5] #Ring
+experiment_6 = [
 
-agent_hyperparameters = agent_multiple_parameters[4] #Vanilla Lidard 4 agents
-# agent_hyperparameters = agent_multiple_parameters[6] #EB Lidard 4 agents
+    {   
+        'graph': fully_connected(8),
+        'connection_slow': False,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Complete Graph, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': fully_connected(8),
+        'connection_slow': False,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Complete Graph, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
+
+experiment_7 = [    
+    {  
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 3,
+        'experiment_name': 'PEB - Line, M = 4, γ = 3',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 3,
+        'experiment_name': 'UCB - Line, M = 4, γ = 3',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+
+]
 
 
-# agent_hyperparameters = agent_multiple_parameters[5] #Vanilla Lidard 12 agents
-# agent_hyperparameters = agent_multiple_parameters[7] #EB Lidard 12 agents
+experiment_8 = [    
 
-iql_hyperparameters = iql_multiple_parameters[0]
+    {   
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 4,
+        'experiment_name': 'PEB - Line, M = 8, γ = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
 
+    {  
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 4,
+        'experiment_name': 'UCB - Line, M = 8, γ = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
+
+experiment_9 = [    
+    {  
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'PEB - Line, M = 4, γ = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+    
+    {   
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Line, M = 4, γ = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+
+]
+
+experiment_10 = [    
+
+    {   
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 7,
+        'experiment_name': 'PEB - Line, M = 8, γ = 7',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 7,
+        'experiment_name': 'UCB - Line, M = 8, γ = 7',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
+
+experiment_11 = [    
+    {   
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Line, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': line_graph(4),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Line, M = 4, γ = 1',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+
+]
+
+experiment_12 = [    
+
+    {   
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Line, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },
+ 
+    {   
+        'graph': line_graph(8),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Line, M = 8, γ = 1',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },
+]
+experiment_13 = [
+    {   
+        'graph': ring_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'PEB - Lattice, M = 4, γ = 2, K = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': ring_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Lattice, M = 4, γ = 2, K = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+
+]
+
+experiment_14 = [
+
+    {   
+        'graph': ring_graph(8, 4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'PEB - Lattice, M = 8, γ = 2, K = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },   
+ 
+    {   
+        'graph': ring_graph(8, 4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Lattice, M = 8, γ = 2, K = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },   
+]
+
+experiment_15 = [
+    {   
+        'graph': ring_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Lattice, M = 4, γ = 1, K = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.EB_Lidard
+    },
+
+    {   
+        'graph': ring_graph(4, 2),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Lattice, M = 4, γ = 1, K = 2',
+        'num_agents': 4,
+        'agent_type': AgentType.ORIGINAL
+    },
+
+]
+
+
+experiment_16 = [
+
+    {   
+        'graph': ring_graph(8, 4),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'PEB - Lattice, M = 8, γ = 1, K = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.EB_Lidard
+    },  
+    {   
+        'graph': ring_graph(8, 4),
+        'connection_slow': True,
+        'gamma_hop': 1,
+        'experiment_name': 'UCB - Lattice, M = 8, γ = 1, K = 4',
+        'num_agents': 8,
+        'agent_type': AgentType.ORIGINAL
+    },   
+]
+
+
+experiment_17 = [
+    { 
+         'graph': watts_strogatz_deterministic(), 
+         'connection_slow': True, 
+         'gamma_hop': 2, 
+         'experiment_name': 'PEB - Watts-Strogatz, γ = 2, K = 4, P = 0.5',
+         'num_agents': 12,
+        'agent_type': AgentType.EB_Lidard
+    },
+    {   
+        'graph': ring_graph(12, 4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'PEB - Lattice, γ = 2, K = 4',
+        'num_agents': 12,
+        'agent_type': AgentType.EB_Lidard
+    },
+    { 
+         'graph': watts_strogatz_deterministic(), 
+         'connection_slow': True, 
+         'gamma_hop': 2, 
+         'experiment_name': 'UCB - Watts-Strogatz, γ = 2, K = 4, P = 0.5',
+         'num_agents': 12,
+        'agent_type': AgentType.ORIGINAL
+    },    
+    {   
+        'graph': ring_graph(12, 4),
+        'connection_slow': True,
+        'gamma_hop': 2,
+        'experiment_name': 'UCB - Lattice, γ = 2, K = 4',
+        'num_agents': 12,
+        'agent_type': AgentType.ORIGINAL
+    },   
+    
+]
+    
+#Define a new experiment above as a list of dictionaries. Add that here. 
+experiments_choice = [experiment_1, experiment_2, experiment_3, experiment_4, 
+                      experiment_5, experiment_6, experiment_7, experiment_8, experiment_9,
+                      experiment_10, experiment_11, experiment_12, experiment_13, experiment_14,
+                      experiment_15, experiment_16, experiment_17]
+
+#Hyperparmameters that feed into the experiment pipeline. 
 ucb_marl_hyperparameters = ucb_marl_multiple_parameters[0]
-
 eb_marl_hyperparameters = eb_marl_multiple_parameters[0]
-
 evaluation_hyperparameters = evaluation_multiple_parameters[0]
-
-# reward_function = reward_multiple_parameters[0] #Mean reward 4
-
-reward_function = reward_multiple_parameters[0] #12
-# reward_function = reward_multiple_parameters[2] #12
-
+reward_function = reward_multiple_parameters[0] 
 train_hyperparameters = train_multiple_parameters[0]
-
 switch_hyperparameters = switch_multiple_parameters[0]
 
+
+#Legacy code from previous student. Do not worry about it if you're using the experiment pipeline, which you ought to be using. 
+graph_hyperparameters = multiple_graph_parameters[0] #Fully connected
+agent_hyperparameters = agent_multiple_parameters[4] #Vanilla Lidard 4 agents
+iql_hyperparameters = iql_multiple_parameters[0]
 dynamic_hyperparameters = dynamic_parameters[0]

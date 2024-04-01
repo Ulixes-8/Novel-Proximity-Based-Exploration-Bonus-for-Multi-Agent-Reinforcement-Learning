@@ -1,65 +1,43 @@
-"""This will start the program.  Contains a small menu 
-    which can either train a model or run a trained model"""
-from file_management import show_all_files
-# from train import train
-from evaluation import evaluation
-from show import play_on_show
-from hyperparameters import agent_hyperparameters, experiments_choice
+from hyperparameters import experiments_choice
 import time
 from twelve_experiments import experiment_pipeline
 
+## When you define new experiments and add them to the experiments_choice array, they will automatically show up here. No need to do anything. 
+
 def menu():
+    """The menu which runs the experiment pipeline"""
+    print('Please select which experiment you would like to run by entering the corresponding number (e.g., "1" for experiment 1.).')
+    print('There are 17 experiments total, so enter a number between 1 and 17.')
+    print('Please ensure that the hyperparameters for both the algorithm and the environment are set to their desired values in hyperparameters.py before running an experiment.')
+    print('Please also note that the code is parallelized and so will be utilizing a lot of your CPU.\n')
+    started = False
+    for i, experiment_group in enumerate(experiments_choice, start=1):
+        experiment_name = "UCB vs. "
+        experiment_name += experiment_group[0]['experiment_name']
+        print(f"{i}: {experiment_name}")
 
+    try:
+        choice = int(input("Enter your choice: "))
+    except ValueError:
+        print("Please enter a valid integer.")
+        return
 
+    if 1 <= choice <= len(experiments_choice):
+        print(f"Experiment {choice} selected.\n")
+        started = True
+        print('Time started')
+        start_time = time.time()
 
+        experiment_pipeline(experiments_choice[choice-1])
+        print("Experiment successful.")
+    else:
+        print("Invalid choice. Please select a number between 1 and 17.")
 
-    """The menu which runs the main program"""
+    if started: 
+        print('\nTime finished.')
+        print(f'--- {time.time() - start_time} seconds ---')
+        print('\nHave a good day')
 
-    print('Please choose an option:\n'
-    # '1. Train Agents (Please check hyperparameters and right Agent chosen)\n'
-    '2. Test Agents (Please check hyperparameters used)\n'
-    '3. Load and Show Agents\n'
-    '4. 12 Experiments\n')
-    choice = int(input())
-    print('Time started')
-    start_time = time.time()
-    
-    if choice == 1:
-        print('\n')
-        print('No longer an option')
-        # train(agent_hyperparameters['agent_choice'])
-
-    elif choice == 2:
-        print('\n')
-        evaluation(agent_hyperparameters['agent_choice'])
-
-    elif choice == 3:
-        print('\n')
-        _play_agents()
-        
-    elif choice == 4:
-        print('\n')
-        experiment_pipeline(experiments_choice, agent_hyperparameters['agent_choice'])
-        
-        
-    print('\n')
-    print(f'--- {time.time() - start_time} seconds ---')
-    print('\n')
-    print('Have a good day')
-
-
-def _play_agents():
-
-    """This will play a certain agent which is saved on the system"""
-
-    agent_files = show_all_files()
-    print('Please choose an agent file to use')
-    for i, agent_file in enumerate(agent_files):
-        print(f'{i}. {agent_file}')
-    choice = int(input())
-    print('\n')
-    filename = agent_files[choice] 
-    play_on_show(filename)
 
 
 # menu()

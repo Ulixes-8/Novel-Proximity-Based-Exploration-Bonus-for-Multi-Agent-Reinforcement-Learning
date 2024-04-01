@@ -2,7 +2,7 @@ from file_management import load
 from env import create_env
 from utils import encode_state
 from reward_functions import final_reward
-from hyperparameters import AgentType, switch_hyperparameters
+from hyperparameters import switch_hyperparameters
 
 from time import sleep
 

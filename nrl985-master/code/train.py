@@ -3,12 +3,9 @@ the model"""
 from env import create_env
 from create_agents import create_agents
 from utils import encode_state
-from file_management import save
 from reward_functions import final_reward
 from hyperparameters import train_hyperparameters, agent_hyperparameters, dynamic_hyperparameters, AgentType
-import numpy as np
 import math
-from eb_marl_agent import EB_MARL_Comm
 
 # Hyperparameters which can be changed to change what and how the agent learns
 NUM_OF_CYCLES = train_hyperparameters['num_of_cycles']
@@ -109,7 +106,7 @@ def _set_up(choice):
 def _episode_original_multiple(env, agents, episode_num, oracle=None):
 
     """
-    This trains the original Lidard algorithm for MARL agents for one episode
+    This trains the UCB/Lidard algorithm for MARL agents for one episode
 
     env - The parallel environment to be used
 
@@ -157,8 +154,22 @@ def _episode_original_multiple(env, agents, episode_num, oracle=None):
     return final_reward(rewards)
 
 
-
+#  PB Algorithm training episode. 
 def _episode_EB_Lidard(env, agents, episode_num, oracle=None):
+    
+    """
+    This trains the PB algorithm for MARL agents for one episode
+
+    env - The parallel environment to be used
+
+    agents - A dict containing the agents to be used
+
+    episode_num - The episode number
+
+    Return 
+    The reward for that episode
+    """
+    
     agent_old_state = {agent: -1 for agent in agents.keys()}
     observations = env.reset()    
 

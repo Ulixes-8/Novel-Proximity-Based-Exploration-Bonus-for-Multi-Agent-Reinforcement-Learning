@@ -277,7 +277,6 @@ class MARL_Comm(Agent):
                             clique_size = self._num_neighbours
                             b = self.c * math.sqrt(((self.H**3) * self.l) / (clique_size*t))
                             
-                            # b=0 # UNCOMMENT THIS TO REMOVE EXPLORATION BONUS
                             
                             self.exploration_bonuses.append(b)
                             alpha = (self.H+1)/(self.H+t) 

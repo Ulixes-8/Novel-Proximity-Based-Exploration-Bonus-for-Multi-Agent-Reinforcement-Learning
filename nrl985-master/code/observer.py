@@ -4,15 +4,14 @@ from scipy.stats import entropy
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import networkx as nx
-from scipy.spatial.distance import euclidean
 import numpy as np
-# import torch 
 import math 
 import os
 import uuid
+import warnings
 import seaborn as sns
 
-class Oracle:
+class Oracle: ##The Oracle is the same this as the Observer in the paper. I was just too lazy to change the name. :)
     def __init__(self):
         # Initializes the universal n-table
         self.universal_nTable = defaultdict(lambda: defaultdict(int))
@@ -50,11 +49,6 @@ class Oracle:
         """
         stats = self.calculate_statistics()
         stats['bad_exp_score'] = self.calculate_bad_exp_score(mean_reward)
-        # bes = stats['bad_exp_score']
-        # cc, _ = self.calculate_clustering_coefficient()
-        # stats['clustering_coefficient'] = cc
-        # bcc = self.calculate_bcc(bes, cc)
-        # stats['bad_clustering_coefficient'] = bcc
         self.episode_stats.append(stats)
         
     def calculate_bcc(self, cc, bes):
@@ -128,13 +122,33 @@ class Oracle:
     def update_real_state_map(self, hash_value, real_state):
         """Store the mapping from state hash to its original real state."""
         self.real_state_map[hash_value] = real_state
-        
-    def create_bubble_plot(self):
+            
+    def create_bubble_plot(self, num_agents):
         directory = "saved_data/observer_figs"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         object_id_key_name = f"oracle_{id(self)}"
+        
+        if num_agents == 4: 
+            positions_train = {
+                0: np.array([-.8, .8]),
+                1: np.array([-.8, -.8]),
+                2: np.array([.8, -.8]),
+                3: np.array([.8, .8]),
+            }
+        else:
+            positions_train = {
+            0: np.array([-2.,  0.]),
+            1: np.array([-1.2,  1.2]),
+            2: np.array([0., 2.]),
+            3: np.array([1.2, 1.2]),
+            4: np.array([2., 0.]),
+            5: np.array([1.2, -1.2]),
+            6: np.array([0., -2.]),
+            7: np.array([-1.2, -1.2])
+            }
+
 
         aggregated_counts = {}
         for hashed_state, actions in self.universal_nTable.items():
@@ -147,7 +161,9 @@ class Oracle:
 
         x_coords, y_coords, sizes = zip(*[(x, y, count) for (x, y), count in aggregated_counts.items()])
         
-        scaled_sizes = [np.log1p(size) * 100 for size in sizes]  # Adjust scaling as needed for visual representation
+        # scaled_sizes = [np.log1p(size) * 100 for size in sizes]  # Adjust scaling as needed
+        scaled_sizes = [size for size in sizes]  # You can adjust this scaling
+
 
         plt.figure(figsize=(10, 6))
         norm = mcolors.Normalize(vmin=min(sizes), vmax=max(sizes))
@@ -155,59 +171,34 @@ class Oracle:
 
         plt.xlabel('X Coordinate')
         plt.ylabel('Y Coordinate')
-        plt.title('Agent Exploration Bubble Plot')
+        # plt.title('Agent Exploration Bubble Plot')
         colorbar = plt.colorbar(scatter, label='Visitation Counts')
-        
-        # Assuming the goal state is highlighted as before, include its plotting here
-        # For example, using a red marker for the goal state:
-        plt.scatter(0, 0, s=100, c='red', edgecolor='gold', linewidth=2, alpha=0.9, label='Goal State')  # Adjust size as needed
 
-        # Position the legend outside the bubble chart, right next to the title
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=1)
+        # Marking agents' positions with unique symbols
+        markers = ['h', '^', 's', 'd', '*', 'p', '<', '>']  # Extend this list if more markers are needed
+        # for key, position in positions_train.items():
+        #     plt.scatter(position[0], position[1], s=100, marker=markers[key % len(markers)], edgecolor='black', linewidth=1, label=f'Initial Pos. Agent {key}')
+
+        # Suppress specific UserWarnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            # Your plotting code here
+            for key, position in positions_train.items():
+                plt.scatter(position[0], position[1], s=100, marker=markers[key % len(markers)], edgecolor='black', linewidth=1, label=f'Initial Pos. Agent {key}')
+
+        # Marking the Goal State
+        plt.scatter(0, 0, s=50, c='red', label='Goal State')
+        
+        plt.legend(loc='lower center', bbox_to_anchor=(0.6, 1.02), ncol=5, fancybox=True, shadow=True)
+            
+
 
         unique_filename = f"{directory}/{object_id_key_name}_bubble_plot_{uuid.uuid4()}.png"
         plt.savefig(unique_filename)
         print(f"Saved figure: {unique_filename}")
-        plt.close()
-        
-    # def create_bubble_plot(self):
-    #     """
-    #     Plots and saves a bubble plot of the visit counts in the universal nTable.
-    #     """
-    #     directory = "saved_data/observer_figs"
-    #     if not os.path.exists(directory):
-    #         os.makedirs(directory)
+    plt.close()
 
-    #     object_id_key_name = f"oracle_{id(self)}"  # Unique identifier for the Oracle instance
-
-    #     # Aggregate visitation counts by (x, y) coordinates
-    #     aggregated_counts = {}
-    #     for hashed_state, actions in self.universal_nTable.items():
-    #         real_state = self.real_state_map[hashed_state]
-    #         x, y = real_state[-2], real_state[-1]  # Extract x and y coordinates
-
-    #         if (x, y) not in aggregated_counts:
-    #             aggregated_counts[(x, y)] = 0
-    #         aggregated_counts[(x, y)] += sum(actions.values())  # Sum visitation counts
-
-    #     # Create the bubble plot
-    #     x_coords, y_coords, sizes = zip(*[(x, y, count) for (x, y), count in aggregated_counts.items()])
-        
-    #     plt.figure(figsize=(10, 6))
-    #     # Normalize the sizes for color mapping
-    #     norm = mcolors.Normalize(vmin=min(sizes), vmax=max(sizes))
-    #     scatter = plt.scatter(x_coords, y_coords, s=sizes, c=sizes, alpha=0.5, norm=norm)
-    #     plt.xlabel('X Coordinate')
-    #     plt.ylabel('Y Coordinate')
-    #     plt.title('Agent Exploration Bubble Plot')
-    #     plt.colorbar(scatter, label='Visitation Counts')
-
-    #     # Construct unique filename
-    #     unique_filename = f"{directory}/{object_id_key_name}_bubble_plot_{uuid.uuid4()}.png"
-    #     plt.savefig(unique_filename)
-    #     print(f"Saved figure: {unique_filename}")
-    #     plt.close()
-    
+   
     def plot_episode_statistics(self):
         """
         Plots and saves the time series data for each statistic over the episodes.
