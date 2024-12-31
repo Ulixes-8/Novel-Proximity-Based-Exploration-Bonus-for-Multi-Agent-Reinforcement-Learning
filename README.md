@@ -1,4 +1,4 @@
-This software was written as a final year thesis. It received a final mark of 81%, ranking 8th out of 412 computer science theses at the University of Birminghmam. 
+This software was written as a final year thesis. It received a final mark of 81%, ranking 8th out of 412 computer science theses at the University of Birminghmam. The thesis is available here: https://drive.google.com/file/d/11wO-mfpuW0spVGDNevITv45_IRoW4YQP/view?usp=sharing
 
 # Project Repository
 
