@@ -1,4 +1,8 @@
-This software was written as a final year thesis. It received a final mark of 81%, ranking 8th out of 412 computer science theses at the University of Birminghmam. The thesis is available here: https://drive.google.com/file/d/11wO-mfpuW0spVGDNevITv45_IRoW4YQP/view?usp=sharing. Other work based on this codebase is available here: https://drive.google.com/file/d/1kmyY57a1Ev8LtSDurHo1XwcZjLzaRsGO/view?usp=sharing
+This software was written as a final year thesis. It received a final mark of 81%, ranking 8th out of 412 computer science theses at the University of Birmingham. 
+
+- The [thesis document](https://drive.google.com/file/d/11wO-mfpuW0spVGDNevITv45_IRoW4YQP/view?usp=sharing) is available online.
+- Other work based on this codebase is described in [this document](https://drive.google.com/file/d/1kmyY57a1Ev8LtSDurHo1XwcZjLzaRsGO/view?usp=sharing).
+
 
 # Project Repository
 
