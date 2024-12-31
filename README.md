@@ -1,3 +1,5 @@
+This software was written as a final year thesis. It received a final mark of 81%, ranking 8th out of 412 computer science theses at the University of Birminghmam. 
+
 # Project Repository
 
 ## Running the Experiment Pipeline
